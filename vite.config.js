@@ -4,6 +4,7 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  base: '/crm/', // Esto hará que la aplicación se sirva desde /crm/
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

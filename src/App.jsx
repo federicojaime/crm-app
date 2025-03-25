@@ -8,6 +8,7 @@ import Layout from './components/Layout';
 import ClientsPage from './pages/ClientsPage';
 import SalesPage from './pages/SalesPage';
 import PipelinePage from './pages/PipelinePage';
+import UsersPage from './pages/UsersPage';
 import 'tailwindcss/tailwind.css';
 
 const queryClient = new QueryClient();
@@ -16,7 +17,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <MantineProvider withNormalizeCSS withGlobalStyles>
-        <BrowserRouter>
+        <BrowserRouter basename="/crm">
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route element={<ProtectedRoute />}>
@@ -26,6 +27,7 @@ export default function App() {
                 <Route path="/clients/:id" element={<ClientsPage />} />
                 <Route path="/sales" element={<SalesPage />} />
                 <Route path="/pipeline" element={<PipelinePage />} />
+                <Route path="/users" element={<UsersPage />} />
               </Route>
             </Route>
           </Routes>
