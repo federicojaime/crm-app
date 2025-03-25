@@ -8,7 +8,7 @@ import {
     IconSettings,
     IconChevronLeft,
     IconChevronRight,
-    IconUserPlus,
+    IconUserPlus, IconCalendarTime
 } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 import Logo from "../assets/logo_login.png"
@@ -50,6 +50,11 @@ export default function Sidebar() {
                 }
             ]
         },
+        {
+            icon: IconCalendarTime, // Importa este icono
+            label: 'Tareas',
+            to: '/tasks',
+        },
     ];
 
     return (
@@ -87,15 +92,15 @@ export default function Sidebar() {
                         const isActive = item.to === '/'
                             ? location.pathname === '/'
                             : location.pathname.startsWith(item.to);
-                            
+
                         const hasSubItems = item.subItems && item.subItems.length > 0;
                         const [subMenuOpen, setSubMenuOpen] = useState(
                             hasSubItems && item.subItems.some(subItem => location.pathname.startsWith(subItem.to))
                         );
-                        
+
                         // Check if any subItem is active
-                        const isSubItemActive = hasSubItems && 
-                            item.subItems.some(subItem => 
+                        const isSubItemActive = hasSubItems &&
+                            item.subItems.some(subItem =>
                                 location.pathname.startsWith(subItem.to)
                             );
 
@@ -150,12 +155,12 @@ export default function Sidebar() {
                                         />
                                     )}
                                 </NavLink>
-                                
+
                                 {/* Sub menu items */}
                                 {hasSubItems && expanded && (
                                     <motion.div
                                         initial={{ height: 0, opacity: 0 }}
-                                        animate={{ 
+                                        animate={{
                                             height: subMenuOpen ? 'auto' : 0,
                                             opacity: subMenuOpen ? 1 : 0
                                         }}
@@ -164,7 +169,7 @@ export default function Sidebar() {
                                     >
                                         {item.subItems.map((subItem) => {
                                             const isSubActive = location.pathname.startsWith(subItem.to);
-                                            
+
                                             return (
                                                 <NavLink
                                                     key={subItem.to}

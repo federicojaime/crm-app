@@ -10,6 +10,7 @@ import SalesPage from './pages/SalesPage';
 import PipelinePage from './pages/PipelinePage';
 import UsersPage from './pages/UsersPage';
 import 'tailwindcss/tailwind.css';
+import TaskManagement from './components/tasks/TaskManagement';
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ export default function App() {
                 <Route path="/sales" element={<SalesPage />} />
                 <Route path="/pipeline" element={<PipelinePage />} />
                 <Route path="/users" element={<UsersPage />} />
+                <Route path="/tasks" element={<TaskManagement />} />
               </Route>
             </Route>
           </Routes>

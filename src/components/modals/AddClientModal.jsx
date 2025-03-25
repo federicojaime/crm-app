@@ -55,16 +55,20 @@ export const AddClientModal = ({ opened, onClose, availableUsers, availableState
       phone1: (value) => value.trim().length === 0 ? 'El teléfono es requerido' : null,
       email1: (value) => !/^\S+@\S+$/.test(value) ? 'Email inválido' : null,
       state: (value) => value.trim().length === 0 ? 'El estado es requerido' : null,
+      source: (value) => value.trim().length === 0 ? 'El origen es requerido' : null,
     }
   });
 
   const handleAddNote = () => {
-    setNotes([...notes, '']);
+    const updatedNotes = [...form.values.notes, ''];
+    form.setFieldValue('notes', updatedNotes);
+    setNotes(updatedNotes);
   };
 
   const handleRemoveNote = (index) => {
-    const newNotes = notes.filter((_, i) => i !== index);
-    setNotes(newNotes);
+    const updatedNotes = form.values.notes.filter((_, i) => i !== index);
+    form.setFieldValue('notes', updatedNotes);
+    setNotes(updatedNotes);
   };
 
   const handleSubmit = (values) => {
@@ -75,6 +79,7 @@ export const AddClientModal = ({ opened, onClose, availableUsers, availableState
     console.log(formData);
     onClose();
     form.reset();
+    setNotes(['']);
   };
 
   return (
@@ -289,7 +294,7 @@ export const AddClientModal = ({ opened, onClose, availableUsers, availableState
                         </Button>
                       </Group>
                       <Stack spacing="xs">
-                        {notes.map((_, index) => (
+                        {form.values.notes.map((note, index) => (
                           <Group key={index} spacing="xs">
                             <Textarea
                               placeholder={`Nota ${index + 1}`}
@@ -299,7 +304,7 @@ export const AddClientModal = ({ opened, onClose, availableUsers, availableState
                               }}
                               {...form.getInputProps(`notes.${index}`)}
                             />
-                            {notes.length > 1 && (
+                            {form.values.notes.length > 1 && (
                               <ActionIcon
                                 color="red"
                                 variant="subtle"
