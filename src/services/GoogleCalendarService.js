@@ -1,249 +1,161 @@
 // src/services/GoogleCalendarService.js
 /**
- * Servicio para manejar la integración con Google Calendar API
+ * Servicio para integrar con Google Calendar usando la librería Google Identity Services (GSI)
+ * y la API de gapi para Calendar.
+ *
+ * En producción, usa variables de entorno (ej. process.env.REACT_APP_GOOGLE_API_KEY)
+ * y NO expongas tus claves directamente en el código.
  */
+const API_KEY = "AIzaSyBtxAaYu5Di85H_4K1P2owyIjKIYF22BmQ";
+const CLIENT_ID = "620684765683-4fg2m2099v9mff0e9d7ttcc262pfag58.apps.googleusercontent.com";
 
-// Credenciales de OAuth 2.0 para la API de Google
-// Estas credenciales deberán obtenerse desde Google Cloud Console
-const API_KEY = 'AIzaSyBtxAaYu5Di85H_4K1P2owyIjKIYF22BmQ';
-const CLIENT_ID = '620684765683-4fg2m2099v9mff0e9d7ttcc262pfag58.apps.googleusercontent.com';
 const DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'];
-const SCOPES = 'https://www.googleapis.com/auth/calendar';
+const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
 
 class GoogleCalendarService {
   constructor() {
     this.isInitialized = false;
     this.isAuthorized = false;
     this.tokenClient = null;
+    this.gapi = null;
   }
 
-  /**
-   * Inicializa la API de Google Calendar
-   */
   async init() {
     if (this.isInitialized) return Promise.resolve();
 
-    return new Promise((resolve, reject) => {
-      // Carga el script de la API de Google
-      const script = document.createElement('script');
-      script.src = 'https://apis.google.com/js/api.js';
-      script.onload = () => {
+    // 1) Cargar gapi
+    await new Promise((resolve, reject) => {
+      window.handleGapiLoaded = () => {
         window.gapi.load('client', async () => {
           try {
             await window.gapi.client.init({
               apiKey: API_KEY,
               discoveryDocs: DISCOVERY_DOCS,
             });
-
-            // Carga el script de autenticación de Google
-            const scriptAuth = document.createElement('script');
-            scriptAuth.src = 'https://accounts.google.com/gsi/client';
-            scriptAuth.onload = () => {
-              this.tokenClient = window.google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPES,
-                callback: (response) => {
-                  if (response.error) {
-                    reject(response);
-                    return;
-                  }
-                  
-                  this.isAuthorized = true;
-                  resolve();
-                },
-              });
-              
-              this.isInitialized = true;
-              resolve();
-            };
-            
-            document.body.appendChild(scriptAuth);
+            this.gapi = window.gapi;
+            this.isInitialized = true;
+            resolve();
           } catch (error) {
+            console.error('Error inicializando GAPI client:', error);
             reject(error);
           }
         });
       };
-      
-      script.onerror = (error) => reject(error);
+      const script = document.createElement('script');
+      script.src = 'https://apis.google.com/js/api.js?onload=handleGapiLoaded';
+      script.async = true;
+      script.defer = true;
+      script.onerror = reject;
       document.body.appendChild(script);
+    });
+
+    // 2) Cargar Google Identity Services
+    await new Promise((resolve, reject) => {
+      window.handleGisLoaded = () => {
+        this.tokenClient = window.google.accounts.oauth2.initTokenClient({
+          client_id: CLIENT_ID,
+          scope: SCOPES,
+          callback: (tokenResponse) => {
+            if (tokenResponse.error) {
+              console.error('Error de token:', tokenResponse);
+              return;
+            }
+            this.gapi.client.setToken({ access_token: tokenResponse.access_token });
+            this.isAuthorized = true;
+          },
+        });
+        resolve();
+      };
+      const gisScript = document.createElement('script');
+      gisScript.src = 'https://accounts.google.com/gsi/client';
+      gisScript.async = true;
+      gisScript.defer = true;
+      gisScript.onload = () => {
+        window.handleGisLoaded();
+      };
+      gisScript.onerror = reject;
+      document.body.appendChild(gisScript);
     });
   }
 
-  /**
-   * Solicita autorización al usuario para acceder a su calendario
-   */
   async authorize() {
     if (!this.isInitialized) {
       await this.init();
     }
-
     if (this.isAuthorized) return Promise.resolve();
 
-    return new Promise((resolve) => {
-      this.tokenClient.callback = (response) => {
-        if (response.error) {
-          console.error('Error de autorización:', response.error);
-        }
-        
-        this.isAuthorized = true;
-        resolve();
-      };
-      
-      this.tokenClient.requestAccessToken({ prompt: 'consent' });
-    });
-  }
-
-  /**
-   * Revoca la autorización del usuario
-   */
-  async signOut() {
-    if (!this.isInitialized || !this.isAuthorized) return Promise.resolve();
-
-    return new Promise((resolve) => {
-      const token = window.gapi.client.getToken();
-      if (token) {
-        window.google.accounts.oauth2.revoke(token.access_token, () => {
-          window.gapi.client.setToken('');
-          this.isAuthorized = false;
-          resolve();
-        });
-      } else {
-        resolve();
+    return new Promise((resolve, reject) => {
+      try {
+        this.tokenClient.requestAccessToken({ prompt: 'consent' });
+        const checkAuth = () => {
+          if (this.isAuthorized) {
+            resolve();
+          } else {
+            setTimeout(checkAuth, 100);
+          }
+        };
+        checkAuth();
+      } catch (error) {
+        console.error('Error durante autorización:', error);
+        reject(error);
       }
     });
   }
 
-  /**
-   * Obtiene la lista de calendarios del usuario
-   */
-  async getCalendarList() {
-    if (!this.isAuthorized) {
-      await this.authorize();
-    }
-
-    try {
-      const response = await window.gapi.client.calendar.calendarList.list();
-      return response.result.items;
-    } catch (error) {
-      console.error('Error al obtener la lista de calendarios:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Obtiene eventos de un calendario específico
-   * @param {string} calendarId - ID del calendario (primary por defecto)
-   * @param {Object} options - Opciones de filtrado de eventos
-   */
-  async getEvents(calendarId = 'primary', options = {}) {
-    if (!this.isAuthorized) {
-      await this.authorize();
-    }
-
-    const timeMin = options.timeMin || new Date().toISOString();
-    const maxResults = options.maxResults || 10;
-    const singleEvents = options.singleEvents !== undefined ? options.singleEvents : true;
-
-    try {
-      const response = await window.gapi.client.calendar.events.list({
-        calendarId,
-        timeMin,
-        maxResults,
-        singleEvents,
-        orderBy: 'startTime',
-      });
-      
-      return response.result.items;
-    } catch (error) {
-      console.error('Error al obtener eventos:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Crea un nuevo evento en el calendario
-   * @param {Object} eventData - Datos del evento a crear
-   * @param {string} calendarId - ID del calendario (primary por defecto)
-   */
   async createEvent(eventData, calendarId = 'primary') {
     if (!this.isAuthorized) {
-      await this.authorize();
+      throw new Error('No estás autorizado con Google Calendar');
     }
-
-    try {
-      const response = await window.gapi.client.calendar.events.insert({
-        calendarId,
-        resource: eventData,
-      });
-      
-      return response.result;
-    } catch (error) {
-      console.error('Error al crear el evento:', error);
-      throw error;
-    }
+    const response = await this.gapi.client.calendar.events.insert({
+      calendarId,
+      resource: eventData,
+    });
+    return response.result;
   }
 
-  /**
-   * Actualiza un evento existente
-   * @param {string} eventId - ID del evento a actualizar
-   * @param {Object} eventData - Nuevos datos del evento
-   * @param {string} calendarId - ID del calendario (primary por defecto)
-   */
   async updateEvent(eventId, eventData, calendarId = 'primary') {
     if (!this.isAuthorized) {
-      await this.authorize();
+      throw new Error('No estás autorizado con Google Calendar');
     }
-
-    try {
-      const response = await window.gapi.client.calendar.events.update({
-        calendarId,
-        eventId,
-        resource: eventData,
-      });
-      
-      return response.result;
-    } catch (error) {
-      console.error('Error al actualizar el evento:', error);
-      throw error;
-    }
+    const response = await this.gapi.client.calendar.events.update({
+      calendarId,
+      eventId,
+      resource: eventData,
+    });
+    return response.result;
   }
 
-  /**
-   * Elimina un evento existente
-   * @param {string} eventId - ID del evento a eliminar
-   * @param {string} calendarId - ID del calendario (primary por defecto)
-   */
   async deleteEvent(eventId, calendarId = 'primary') {
     if (!this.isAuthorized) {
-      await this.authorize();
+      throw new Error('No estás autorizado con Google Calendar');
     }
-
-    try {
-      await window.gapi.client.calendar.events.delete({
-        calendarId,
-        eventId,
-      });
-      
-      return true;
-    } catch (error) {
-      console.error('Error al eliminar el evento:', error);
-      throw error;
-    }
+    await this.gapi.client.calendar.events.delete({
+      calendarId,
+      eventId,
+    });
+    return true;
   }
 
-  /**
-   * Convierte un objeto de tarea a formato de evento de Google Calendar
-   * @param {Object} task - Objeto de tarea de la aplicación
-   */
+  async getEvents(calendarId = 'primary', options = {}) {
+    if (!this.isAuthorized) {
+      return [];
+    }
+    const response = await this.gapi.client.calendar.events.list({
+      calendarId,
+      timeMin: options.timeMin || new Date().toISOString(),
+      maxResults: options.maxResults || 50,
+      singleEvents: options.singleEvents !== undefined ? options.singleEvents : true,
+      orderBy: 'startTime',
+    });
+    return response.result.items || [];
+  }
+
+  // Convierte una "tarea" local en evento de Calendar
   taskToCalendarEvent(task) {
-    // Asegurarse de que la fecha es un objeto Date
     const dueDate = new Date(task.dueDate);
-    
-    // Calcular la fecha de finalización (por defecto 1 hora después)
     const endDate = new Date(dueDate);
     endDate.setHours(endDate.getHours() + 1);
-    
-    // Construir el evento para Google Calendar
+
     return {
       summary: task.title,
       description: task.description || '',
@@ -256,11 +168,13 @@ class GoogleCalendarService {
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
       reminders: {
-        useDefault: true,
+        useDefault: !task.reminderEnabled,
+        overrides: task.reminderEnabled
+          ? [{ method: 'popup', minutes: parseInt(task.reminderTime, 10) }]
+          : [],
       },
     };
   }
 }
 
-// Exportar una instancia única del servicio
 export const googleCalendarService = new GoogleCalendarService();
