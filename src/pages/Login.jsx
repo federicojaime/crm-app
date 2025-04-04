@@ -20,7 +20,7 @@ const LoginForm = () => {
       localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('user', JSON.stringify({
         nombre: 'Gimena',
-        apellido: 'Cannaviri',
+        apellido: 'Gonzalez',
         email: formData.email
       }));
       navigate('/');
