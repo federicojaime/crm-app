@@ -19,9 +19,14 @@ import {
     Table2,
     ChevronDown,
     ChevronUp,
+    FileSpreadsheet,
+    UserPlus,
+    Upload,
+    Download,
 } from 'lucide-react';
 import AddClientModal from '../components/modals/AddClientModal';
 import ClientDetailSidebar from './ClientDetailPage';
+import SyncContactsModal from '../components/modals/SyncContactsModal';
 
 const columns = [
     { key: 'name', label: 'Nombre' },
@@ -51,11 +56,12 @@ const ClientSourceBadge = ({ source }) => {
         'Sitio Web': 'bg-blue-100 text-blue-700',
         'Evento': 'bg-yellow-100 text-yellow-700',
         'Redes Sociales': 'bg-pink-100 text-pink-700',
-        'Publicidad': 'bg-orange-100 text-orange-700'
+        'Publicidad': 'bg-orange-100 text-orange-700',
+        'Google Contacts': 'bg-red-100 text-red-700',
     };
 
     return (
-        <span className={`px-2 py-1 text-sm rounded-lg ${styles[source]}`}>
+        <span className={`px-2 py-1 text-sm rounded-lg ${styles[source] || 'bg-gray-100 text-gray-700'}`}>
             {source}
         </span>
     );
@@ -257,12 +263,13 @@ const ClientsPage = () => {
     const [viewMode, setViewMode] = useState('table');
     const [currentPage, setCurrentPage] = useState(1);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
     const clientsPerPage = 5;
     const [sorting, setSorting] = useState({ field: null, direction: 'asc' });
     const [columnFilters, setColumnFilters] = useState({});
 
     // Datos de ejemplo
-    const clients = [
+    const [clients, setClients] = useState([
         {
             id: 1,
             nombre: 'Juan',
@@ -393,7 +400,7 @@ const ClientsPage = () => {
             fecha_creacion: '2024-06-05',
             etapa: 'Cliente',
         },
-    ];
+    ]);
 
 
     const selectedClient = useMemo(() => {
@@ -407,6 +414,26 @@ const ClientsPage = () => {
 
     const handleCloseDetail = () => {
         navigate('/clients');
+    };
+
+    // Función para manejar la importación de contactos desde Google
+    const handleImportedContacts = (importedContacts) => {
+        // Añadir los contactos importados a la lista de clientes
+        // Asegurarse de no duplicar contactos que ya existen (basado en email)
+        const existingEmails = new Set(clients.map(client => client.email.toLowerCase()));
+
+        const newContacts = importedContacts.filter(contact =>
+            !existingEmails.has(contact.email.toLowerCase())
+        );
+
+        // Asignar nuevos IDs para evitar conflictos
+        const maxId = Math.max(...clients.map(client => client.id), 0);
+        const contactsWithIds = newContacts.map((contact, index) => ({
+            ...contact,
+            id: maxId + index + 1
+        }));
+
+        setClients(prevClients => [...prevClients, ...contactsWithIds]);
     };
 
     // Función para obtener valores únicos para los filtros
@@ -437,27 +464,37 @@ const ClientsPage = () => {
         setCurrentPage(1);
     };
 
-    // Datos filtrados y ordenados
-    const filteredClients = useMemo(() => {
+      // Datos filtrados y ordenados
+      const filteredClients = useMemo(() => {
         let result = [...clients];
 
-        // Aplicar filtros
+        // Aplicar búsqueda primero para mejorar la experiencia del usuario
+        if (search.trim()) {
+            const searchLower = search.toLowerCase().trim();
+            result = result.filter(client => {
+                // Buscar en múltiples campos y mejorar la lógica de búsqueda
+                const fullName = `${client.nombre} ${client.apellido}`.toLowerCase();
+                const emailLower = (client.email || '').toLowerCase();
+                const phoneStr = (client.telefono || '').toString();
+                const companyLower = (client.empresa || '').toLowerCase();
+                
+                return fullName.includes(searchLower) || 
+                       emailLower.includes(searchLower) || 
+                       phoneStr.includes(searchLower) ||
+                       companyLower.includes(searchLower);
+            });
+        }
+
+        // Aplicar filtros de columnas
         Object.entries(columnFilters).forEach(([key, values]) => {
             if (values && values.length > 0) {
-                result = result.filter(client => values.includes(client[key] || '--'));
+                result = result.filter(client => {
+                    // Mejorar el manejo de valores nulos o indefinidos
+                    const clientValue = client[key] || '--';
+                    return values.includes(clientValue);
+                });
             }
         });
-
-        // Aplicar búsqueda
-        if (search.trim()) {
-            const searchLower = search.toLowerCase();
-            result = result.filter(client =>
-                `${client.nombre} ${client.apellido}`.toLowerCase().includes(searchLower) ||
-                client.email.toLowerCase().includes(searchLower) ||
-                client.telefono.includes(search)
-            );
-
-        }
 
         // Aplicar ordenamiento
         if (sorting.field) {
@@ -465,13 +502,23 @@ const ClientsPage = () => {
                 let aValue = a[sorting.field] || '';
                 let bValue = b[sorting.field] || '';
 
+                // Manejo especial para campos de fecha
+                if (['lastContact', 'fecha_creacion'].includes(sorting.field)) {
+                    const dateA = new Date(aValue);
+                    const dateB = new Date(bValue);
+                    return sorting.direction === 'asc' 
+                        ? dateA - dateB 
+                        : dateB - dateA;
+                }
+
+                // Ordenamiento de texto estándar
                 if (typeof aValue === 'string') aValue = aValue.toLowerCase();
                 if (typeof bValue === 'string') bValue = bValue.toLowerCase();
 
                 if (sorting.direction === 'asc') {
-                    return aValue > bValue ? 1 : -1;
+                    return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
                 } else {
-                    return aValue < bValue ? 1 : -1;
+                    return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
                 }
             });
         }
@@ -511,25 +558,56 @@ const ClientsPage = () => {
             <div className="max-w-7xl mx-auto px-4 py-8">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-900">Clientes</h1>
-                    <button
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#508ecb] text-white rounded-lg hover:bg-[#3e78a5] transition-colors"
-                    >
-                        <Plus size={20} />
-                        Crear contacto
-                    </button>
+
+                    <div className="flex gap-2">
+                        {/* Botón para importar/sincronizar contactos */}
+                        <button
+                            onClick={() => setIsSyncModalOpen(true)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            <Upload size={18} />
+                            Importar Contactos
+                        </button>
+
+                        {/* Botón para añadir un contacto manualmente */}
+                        <button
+                            onClick={() => setIsAddModalOpen(true)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-[#508ecb] text-white rounded-lg hover:bg-[#3e78a5] transition-colors"
+                        >
+                            <UserPlus size={18} />
+                            Crear Contacto
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                    <div className="relative flex-1">
+                <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                         <input
                             type="text"
-                            placeholder="Buscar clientes..."
+                            placeholder="Buscar clientes por nombre, email o teléfono..."
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={(e) => {
+                                setSearch(e.target.value);
+                                // Resetear la página al buscar
+                                setCurrentPage(1);
+                            }}
+                            onKeyDown={(e) => {
+                                // Prevenir comportamientos inesperados en la búsqueda
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                }
+                            }}
                             className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#508ecb] focus:border-transparent"
                         />
+                        {search && (
+                            <button 
+                                onClick={() => setSearch('')}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                                X
+                            </button>
+                        )}
                     </div>
                     <div className="flex gap-2">
                         <button
@@ -711,6 +789,15 @@ const ClientsPage = () => {
                 availableUsers={mockData.availableUsers}
                 availableStates={mockData.availableStates}
                 availableTags={mockData.availableTags}
+            />
+
+            {/* Modal de Sincronización e Importación de Contactos */}
+            {/* Modal de Sincronización e Importación de Contactos */}
+            <SyncContactsModal
+                opened={isSyncModalOpen}
+                onClose={() => setIsSyncModalOpen(false)}
+                onContactsImported={handleImportedContacts}
+                contacts={clients}
             />
         </div>
     );

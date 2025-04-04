@@ -6,6 +6,7 @@ const ContactActions = () => {
         { icon: Phone, label: 'Llamada' },
         { icon: Calendar, label: 'Tarea' },
         { icon: Users, label: 'Reunión' },
+
     ];
 
     return (

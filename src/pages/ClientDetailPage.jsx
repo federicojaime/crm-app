@@ -11,7 +11,8 @@ import {
     Phone,
     Users,
     FileText,
-    MapPin
+    MapPin,
+    MessageCircle  
 } from 'lucide-react';
 
 const ClientDetailSidebar = ({ isOpen, onClose, client }) => {
@@ -20,9 +21,10 @@ const ClientDetailSidebar = ({ isOpen, onClose, client }) => {
         { icon: Mail, label: 'Correo' },
         { icon: Phone, label: 'Llamada' },
         { icon: Users, label: 'Reunión' },
-        { icon: FileText, label: 'Tarea' }
+        { icon: FileText, label: 'Tarea' },
+        { icon: MessageCircle , label: 'Whatsapp' }
     ];
-
+ 
     const tabs = [
         { id: 'description', label: 'Descripción' },
         { id: 'activities', label: 'Actividades' }

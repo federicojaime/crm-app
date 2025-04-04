@@ -162,288 +162,281 @@ const TaskFormModal = ({ isOpen, onClose, initialValues = null, onSubmit }) => {
           {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black z-40"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
             onClick={onClose}
-            style={{ backdropFilter: 'blur(2px)' }}
           />
-
-          {/* Modal */}
+          
+          {/* Modal lateral */}
           <motion.div
-            initial={{ opacity: 0, translateY: '20px' }}
-            animate={{ opacity: 1, translateY: 0 }}
-            exit={{ opacity: 0, translateY: '20px' }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="fixed top-10 left-1/2 -translate-x-1/2 w-full max-w-xl z-50 rounded-xl bg-white shadow-2xl max-h-[90vh] flex flex-col"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+            className="fixed right-0 top-0 h-full w-[600px] bg-white shadow-xl z-50 overflow-hidden flex flex-col"
           >
-            {/* Header */}
-            <div className="p-4 bg-gradient-to-r from-blue-600 to-blue-400 text-white rounded-t-xl">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold">
-                  {initialValues ? 'Editar tarea' : 'Crear nueva tarea'}
-                </h2>
-                <button
-                  onClick={onClose}
-                  className="p-2 rounded-full hover:bg-white/20 transition-colors"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-              <p className="mt-1 text-blue-100 text-sm">
-                {initialValues
-                  ? 'Modifica los detalles de la tarea existente'
-                  : 'Completa la información para crear una nueva tarea'}
-              </p>
+            <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-800">
+                {initialValues ? 'Editar Tarea' : 'Crear Nueva Tarea'}
+              </h2>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
             </div>
 
-            {/* Body */}
-            <div className="p-6 overflow-y-auto">
-              <form onSubmit={form.onSubmit(handleSubmit)}>
-                <Stack spacing="md">
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2 flex items-center">
-                      <Tag size={16} className="mr-2 text-blue-600" />
-                      Título <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      {...form.getInputProps('title')}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Ingrese el título de la tarea"
-                    />
-                    {form.errors.title && (
-                      <p className="mt-1 text-sm text-red-500">{form.errors.title}</p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-6">
+                <form onSubmit={form.onSubmit(handleSubmit)} className="space-y-6">
+                  <Stack spacing="lg">
                     <div>
                       <label className="block text-gray-700 font-medium mb-2 flex items-center">
                         <Tag size={16} className="mr-2 text-blue-600" />
-                        Tipo de tarea <span className="text-red-500 ml-1">*</span>
+                        Título <span className="text-red-500 ml-1">*</span>
                       </label>
-                      <select
-                        {...form.getInputProps('type')}
+                      <input
+                        type="text"
+                        {...form.getInputProps('title')}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="">Seleccione el tipo</option>
-                        {mockTaskTypes.map(type => (
-                          <option key={type.value} value={type.value}>{type.label}</option>
-                        ))}
-                      </select>
-                      {form.errors.type && (
-                        <p className="mt-1 text-sm text-red-500">{form.errors.type}</p>
+                        placeholder="Ingrese el título de la tarea"
+                      />
+                      {form.errors.title && (
+                        <p className="mt-1 text-sm text-red-500">{form.errors.title}</p>
                       )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2 flex items-center">
+                          <Tag size={16} className="mr-2 text-blue-600" />
+                          Tipo de tarea <span className="text-red-500 ml-1">*</span>
+                        </label>
+                        <select
+                          {...form.getInputProps('type')}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Seleccione el tipo</option>
+                          {mockTaskTypes.map(type => (
+                            <option key={type.value} value={type.value}>{type.label}</option>
+                          ))}
+                        </select>
+                        {form.errors.type && (
+                          <p className="mt-1 text-sm text-red-500">{form.errors.type}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2 flex items-center">
+                          <User size={16} className="mr-2 text-blue-600" />
+                          Asignado a <span className="text-red-500 ml-1">*</span>
+                        </label>
+                        <select
+                          {...form.getInputProps('assignedTo')}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Seleccione un usuario</option>
+                          {mockUsers.map(user => (
+                            <option key={user.value} value={user.value}>{user.label}</option>
+                          ))}
+                        </select>
+                        {form.errors.assignedTo && (
+                          <p className="mt-1 text-sm text-red-500">{form.errors.assignedTo}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Fecha y hora separados */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2 flex items-center">
+                          <Calendar size={16} className="mr-2 text-blue-600" />
+                          Fecha
+                        </label>
+                        <DatePicker
+                          value={selectedDate}
+                          onChange={setSelectedDate}
+                          minDate={new Date()}
+                          className="w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2 flex items-center">
+                          <Clock size={16} className="mr-2 text-blue-600" />
+                          Hora
+                        </label>
+                        <div className="flex items-center border border-gray-300 rounded-lg">
+                          <select 
+                            value={selectedHour}
+                            onChange={(e) => setSelectedHour(e.target.value)}
+                            className="flex-1 py-2 px-2 border-none focus:ring-0 text-center appearance-none"
+                          >
+                            {hourOptions.map(hour => (
+                              <option key={`hour-${hour}`} value={hour}>{hour}</option>
+                            ))}
+                          </select>
+                          <span className="text-gray-500">:</span>
+                          <select 
+                            value={selectedMinute}
+                            onChange={(e) => setSelectedMinute(e.target.value)}
+                            className="flex-1 py-2 px-2 border-none focus:ring-0 text-center appearance-none"
+                          >
+                            {minuteOptions.map(minute => (
+                              <option key={`minute-${minute}`} value={minute}>{minute}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2">
+                          Estado
+                        </label>
+                        <select
+                          {...form.getInputProps('status')}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="pending">Pendiente</option>
+                          <option value="in_progress">En progreso</option>
+                          <option value="completed">Completada</option>
+                          <option value="cancelled">Cancelada</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2">
+                          Prioridad
+                        </label>
+                        <select
+                          {...form.getInputProps('priority')}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="high">Alta</option>
+                          <option value="medium">Media</option>
+                          <option value="low">Baja</option>
+                        </select>
+                      </div>
                     </div>
 
                     <div>
                       <label className="block text-gray-700 font-medium mb-2 flex items-center">
-                        <User size={16} className="mr-2 text-blue-600" />
-                        Asignado a <span className="text-red-500 ml-1">*</span>
+                        <MessageSquare size={16} className="mr-2 text-blue-600" />
+                        Descripción
                       </label>
-                      <select
-                        {...form.getInputProps('assignedTo')}
+                      <textarea
+                        {...form.getInputProps('description')}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="">Seleccione un usuario</option>
-                        {mockUsers.map(user => (
-                          <option key={user.value} value={user.value}>{user.label}</option>
-                        ))}
-                      </select>
-                      {form.errors.assignedTo && (
-                        <p className="mt-1 text-sm text-red-500">{form.errors.assignedTo}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Fecha y hora separados */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-gray-700 font-medium mb-2 flex items-center">
-                        <Calendar size={16} className="mr-2 text-blue-600" />
-                        Fecha
-                      </label>
-                      <DatePicker
-                        value={selectedDate}
-                        onChange={setSelectedDate}
-                        minDate={new Date()}
-                        className="w-full"
+                        placeholder="Describa los detalles de la tarea"
+                        rows={3}
                       />
                     </div>
-                    <div>
-                      <label className="block text-gray-700 font-medium mb-2 flex items-center">
-                        <Clock size={16} className="mr-2 text-blue-600" />
-                        Hora
-                      </label>
-                      <div className="flex items-center border border-gray-300 rounded-lg">
-                        <select 
-                          value={selectedHour}
-                          onChange={(e) => setSelectedHour(e.target.value)}
-                          className="flex-1 py-2 px-2 border-none focus:ring-0 text-center appearance-none"
-                        >
-                          {hourOptions.map(hour => (
-                            <option key={`hour-${hour}`} value={hour}>{hour}</option>
-                          ))}
-                        </select>
-                        <span className="text-gray-500">:</span>
-                        <select 
-                          value={selectedMinute}
-                          onChange={(e) => setSelectedMinute(e.target.value)}
-                          className="flex-1 py-2 px-2 border-none focus:ring-0 text-center appearance-none"
-                        >
-                          {minuteOptions.map(minute => (
-                            <option key={`minute-${minute}`} value={minute}>{minute}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Estado
-                      </label>
-                      <select
-                        {...form.getInputProps('status')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="pending">Pendiente</option>
-                        <option value="in_progress">En progreso</option>
-                        <option value="completed">Completada</option>
-                        <option value="cancelled">Cancelada</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Prioridad
-                      </label>
-                      <select
-                        {...form.getInputProps('priority')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="high">Alta</option>
-                        <option value="medium">Media</option>
-                        <option value="low">Baja</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2 flex items-center">
-                      <MessageSquare size={16} className="mr-2 text-blue-600" />
-                      Descripción
-                    </label>
-                    <textarea
-                      {...form.getInputProps('description')}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Describa los detalles de la tarea"
-                      rows={3}
-                    />
-                  </div>
-
-                  {/* Opciones adicionales */}
-                  <Box className="bg-blue-50 p-4 rounded-xl mt-4">
-                    <h3 className="text-lg font-medium text-gray-800 mb-2">
-                      Opciones adicionales
-                    </h3>
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex items-center">
-                          <input
-                            type="checkbox"
-                            id="reminderEnabled"
-                            checked={form.values.reminderEnabled}
-                            onChange={(e) => form.setFieldValue('reminderEnabled', e.target.checked)}
-                            className="rounded border-gray-300 text-blue-600 mr-2"
-                          />
-                          <label htmlFor="reminderEnabled" className="text-gray-700">
-                            Agregar recordatorio
-                          </label>
-                        </div>
-                        {form.values.reminderEnabled && (
-                          <div className="mt-2 ml-6">
-                            <select
-                              {...form.getInputProps('reminderTime')}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                            >
-                              <option value="5">5 minutos antes</option>
-                              <option value="15">15 minutos antes</option>
-                              <option value="30">30 minutos antes</option>
-                              <option value="60">1 hora antes</option>
-                              <option value="1440">1 día antes</option>
-                            </select>
+                    {/* Opciones adicionales */}
+                    <Box className="bg-blue-50 p-4 rounded-xl mt-4">
+                      <h3 className="text-lg font-medium text-gray-800 mb-2">
+                        Opciones adicionales
+                      </h3>
+                      <div className="space-y-4">
+                        <div>
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              id="reminderEnabled"
+                              checked={form.values.reminderEnabled}
+                              onChange={(e) => form.setFieldValue('reminderEnabled', e.target.checked)}
+                              className="rounded border-gray-300 text-blue-600 mr-2"
+                            />
+                            <label htmlFor="reminderEnabled" className="text-gray-700">
+                              Agregar recordatorio
+                            </label>
                           </div>
-                        )}
-                      </div>
-
-                      <div>
-                        <div className="flex items-center mb-2">
-                          <input
-                            type="checkbox"
-                            id="addToCalendar"
-                            checked={form.values.addToCalendar}
-                            onChange={(e) => form.setFieldValue('addToCalendar', e.target.checked)}
-                            disabled={!isGCalEnabled && !initialValues?.eventId}
-                            className="rounded border-gray-300 text-blue-600 mr-2"
-                          />
-                          <label htmlFor="addToCalendar" className="text-gray-700">
-                            Sincronizar con Google Calendar
-                          </label>
+                          {form.values.reminderEnabled && (
+                            <div className="mt-2 ml-6">
+                              <select
+                                {...form.getInputProps('reminderTime')}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                              >
+                                <option value="5">5 minutos antes</option>
+                                <option value="15">15 minutos antes</option>
+                                <option value="30">30 minutos antes</option>
+                                <option value="60">1 hora antes</option>
+                                <option value="1440">1 día antes</option>
+                              </select>
+                            </div>
+                          )}
                         </div>
 
-                        {!isGCalEnabled && !initialValues?.eventId && (
-                          <div className="ml-6">
-                            <Button
-                              variant="light"
-                              size="sm"
-                              leftIcon={<Calendar size={16} />}
-                              onClick={handleConnectGoogleCalendar}
-                              loading={isGCalAuthorizing}
-                              className="bg-blue-100 text-blue-700 hover:bg-blue-200"
-                            >
-                              Conectar con Google Calendar
-                            </Button>
-                            {calendarError && (
-                              <p className="mt-2 text-sm text-red-500">{calendarError}</p>
-                            )}
+                        <div>
+                          <div className="flex items-center mb-2">
+                            <input
+                              type="checkbox"
+                              id="addToCalendar"
+                              checked={form.values.addToCalendar}
+                              onChange={(e) => form.setFieldValue('addToCalendar', e.target.checked)}
+                              disabled={!isGCalEnabled && !initialValues?.eventId}
+                              className="rounded border-gray-300 text-blue-600 mr-2"
+                            />
+                            <label htmlFor="addToCalendar" className="text-gray-700">
+                              Sincronizar con Google Calendar
+                            </label>
                           </div>
-                        )}
 
-                        {(isGCalEnabled || initialValues?.eventId) && (
-                          <div className="ml-6 flex items-center text-sm text-green-600">
-                            <Check size={16} className="mr-1" />
-                            {initialValues?.eventId
-                              ? 'Esta tarea ya está sincronizada con Google Calendar'
-                              : 'Listo para sincronizar con Google Calendar'}
-                          </div>
-                        )}
+                          {!isGCalEnabled && !initialValues?.eventId && (
+                            <div className="ml-6">
+                              <Button
+                                variant="light"
+                                size="sm"
+                                leftIcon={<Calendar size={16} />}
+                                onClick={handleConnectGoogleCalendar}
+                                loading={isGCalAuthorizing}
+                                className="bg-blue-100 text-blue-700 hover:bg-blue-200"
+                              >
+                                Conectar con Google Calendar
+                              </Button>
+                              {calendarError && (
+                                <p className="mt-2 text-sm text-red-500">{calendarError}</p>
+                              )}
+                            </div>
+                          )}
+
+                          {(isGCalEnabled || initialValues?.eventId) && (
+                            <div className="ml-6 flex items-center text-sm text-green-600">
+                              <Check size={16} className="mr-1" />
+                              {initialValues?.eventId
+                                ? 'Esta tarea ya está sincronizada con Google Calendar'
+                                : 'Listo para sincronizar con Google Calendar'}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </Box>
-                </Stack>
+                    </Box>
+                  </Stack>
+                </form>
+              </div>
+            </div>
 
-                {/* Footer */}
-                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
-                  <Button 
-                    variant="outline"
-                    onClick={onClose}
-                    disabled={isSubmitting}
-                    className="border-gray-300 text-gray-700"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button 
-                    type="submit"
-                    loading={isSubmitting}
-                    disabled={isSubmitting}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    {initialValues ? 'Guardar cambios' : 'Crear tarea'}
-                  </Button>
-                </div>
-              </form>
+            <div className="sticky bottom-0 bg-white px-6 py-4 border-t">
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={form.onSubmit(handleSubmit)}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-blue-500 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-600"
+                >
+                  {isSubmitting ? 'Guardando...' : initialValues ? 'Guardar cambios' : 'Crear tarea'}
+                </button>
+              </div>
             </div>
           </motion.div>
         </>
