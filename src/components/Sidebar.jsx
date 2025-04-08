@@ -12,7 +12,8 @@ import {
     IconUserPlus, 
     IconCalendarTime,
     IconBriefcase,
-    IconUserCheck
+    IconUserCheck,
+    IconTrendingUp
 } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 import Logo from "../assets/logo_login.png";
@@ -66,7 +67,8 @@ export default function Sidebar() {
     }, [location.pathname]);
 
     // Definición del menú con control de acceso por rol
-    const menuItems = [
+     // Definición del menú con control de acceso por rol
+     const menuItems = [
         {
             icon: IconDashboard,
             label: 'Panel de Control',
@@ -96,6 +98,32 @@ export default function Sidebar() {
             label: 'Tareas',
             to: '/tasks',
             roles: [], // Acceso para todos
+        },
+        {
+            icon: IconChartBar,
+            label: 'Estadísticas',
+            to: '/statistics',
+            roles: ['SUPER ADMINISTRADOR', 'DISTRIBUIDOR'], // Solo accesible para administradores y distribuidores
+            subItems: [
+                {
+                    icon: IconTrendingUp,
+                    label: 'Desempeño',
+                    to: '/statistics/performance',
+                    roles: ['SUPER ADMINISTRADOR', 'DISTRIBUIDOR'],
+                },
+                {
+                    icon: IconGitPullRequest,
+                    label: 'Embudo de Ventas',
+                    to: '/statistics/funnel',
+                    roles: ['SUPER ADMINISTRADOR', 'DISTRIBUIDOR'],
+                },
+                {
+                    icon: IconUsers,
+                    label: 'Agentes',
+                    to: '/statistics/agents',
+                    roles: ['SUPER ADMINISTRADOR', 'DISTRIBUIDOR'],
+                }
+            ]
         },
         {
             icon: IconBriefcase,

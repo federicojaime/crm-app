@@ -1,4 +1,3 @@
-// src/App.jsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MantineProvider } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -21,6 +20,11 @@ import PipelinePage from './pages/PipelinePage';
 import UsersPage from './pages/UsersPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import RRHHPage from './pages/RRHHPage';
+
+// Páginas de estadísticas
+import PerformancePage from './pages/statistics/PerformancePage';
+import FunnelPage from './pages/statistics/FunnelPage';
+import AgentsPage from './pages/statistics/AgentsPage';
 
 // Tareas
 import TaskManagement from './components/tasks/TaskManagement';
@@ -49,7 +53,15 @@ export default function App() {
               </Route>
             </Route>
             
-            {/* Rutas que requieren roles específicos */}
+            {/* Estadísticas - Acceso para Super Admin y Distribuidor */}
+            <Route element={<ProtectedRoute requiredRoles={['SUPER ADMINISTRADOR', 'DISTRIBUIDOR']} />}>
+              <Route element={<Layout />}>
+                <Route path="/statistics/performance" element={<PerformancePage />} />
+                <Route path="/statistics/funnel" element={<FunnelPage />} />
+                <Route path="/statistics/agents" element={<AgentsPage />} />
+              </Route>
+            </Route>
+            
             {/* RRHH - Acceso para Super Admin, Distribuidor y Asistente */}
             <Route element={<ProtectedRoute requiredRoles={['SUPER ADMINISTRADOR', 'DISTRIBUIDOR', 'ASISTENTE COMERCIAL']} />}>
               <Route element={<Layout />}>

@@ -4,6 +4,8 @@ import {
   IconArrowUpRight,
   IconArrowDownRight,
   IconChartLine,
+  IconUserCheck,
+  IconCalendarStats
 } from '@tabler/icons-react';
 import {
   LineChart,
@@ -14,6 +16,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+
+// Importamos el nuevo componente de estadísticas
+import StatisticsPanel from '../components/dashboard/StatisticsPanel';
 
 const salesData = [
   { name: 'Ene', ingreso: 4000 },
@@ -44,14 +49,22 @@ export default function Dashboard() {
       ingreso: '$12,345',
       increase: '+5.7%',
       icon: IconChartLine,
-      color: 'blue',
+      color: 'green',
     },
     {
-      title: 'Ventas Anuales',
-      ingreso: '$150,780',
+      title: 'Total Clientes',
+      ingreso: '248',
       increase: '+10.2%',
-      icon: IconCurrencyDollar,
-      color: 'blue',
+      icon: IconUserCheck,
+      color: 'purple',
+    },
+    {
+      title: 'Tareas Pendientes',
+      ingreso: '18',
+      increase: '-2.5%',
+      icon: IconCalendarStats,
+      color: 'orange',
+      decreasing: true,
     },
   ];
 
@@ -67,28 +80,28 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-6 bg-white p-6">
+    <div className="space-y-6">
       <Grid>
         {stats.map((stat) => (
-          <Grid.Col key={stat.title} span={4}>
+          <Grid.Col key={stat.title} span={3}>
             <Paper className="bg-white border border-gray-200" shadow="sm" p="md" radius="md">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-gray-600">{stat.title}</p>
                   <h3 className="text-2xl font-bold mt-1 text-gray-900">{stat.ingreso}</h3>
                   <div className="flex items-center mt-2">
-                    {parseFloat(stat.increase) > 0 ? (
-                      <IconArrowUpRight size={20} className="text-blue-600" />
+                    {stat.decreasing ? (
+                      <IconArrowDownRight size={20} className="text-red-600" />
                     ) : (
-                      <IconArrowDownRight size={20} className="text-blue-600" />
+                      <IconArrowUpRight size={20} className={`text-${stat.color}-600`} />
                     )}
-                    <span className="text-blue-600 text-sm ml-1">
+                    <span className={`text-${stat.decreasing ? 'red' : stat.color}-600 text-sm ml-1`}>
                       {stat.increase}
                     </span>
                   </div>
                 </div>
-                <div className="p-3 rounded-full bg-blue-50">
-                  <stat.icon size={24} className="text-blue-600" />
+                <div className={`p-3 rounded-full bg-${stat.color}-100`}>
+                  <stat.icon size={24} className={`text-${stat.color}-600`} />
                 </div>
               </div>
             </Paper>
@@ -96,8 +109,11 @@ export default function Dashboard() {
         ))}
       </Grid>
 
+      {/* Nuevo componente de estadísticas */}
+      <StatisticsPanel />
+
       <Paper className="bg-white border border-gray-200" shadow="sm" p="md" radius="md">
-        <h3 className="text-lg font-semibold mb-4 text-gray-900">Resumen de Ventas</h3>
+        <h3 className="text-lg font-semibold mb-4 text-gray-900">Resumen des Ventas</h3>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={salesData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
