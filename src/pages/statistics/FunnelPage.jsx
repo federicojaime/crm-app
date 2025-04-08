@@ -1,7 +1,11 @@
-// src/pages/statistics/FunnelPage.jsx
 import React, { useState } from 'react';
 import { Paper, Title, Select, Text, Group, Button } from '@mantine/core';
-import { IconFilter, IconChevronDown, IconCalendar, IconDownload, IconRefresh } from '@tabler/icons-react';
+import {
+  IconChevronDown,
+  IconCalendar,
+  IconDownload,
+  IconRefresh,
+} from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 
 // Importamos los componentes personalizados
@@ -18,81 +22,81 @@ const FunnelPage = () => {
   // Datos KPIs Nuevos Clientes
   const newClientsKpis = [
     { 
-      title: "Citas vs Demos", 
-      value: "1,6", 
-      description: "¿Cuántas citas para 1 demo?",
-      target: "VR: menor a 2",
-      color: "bg-green-400"
+      title: 'Citas vs Demos', 
+      value: '1,6', 
+      description: '¿Cuántas citas para 1 demo?',
+      target: 'VR: menor a 2',
+      color: 'bg-green-400',
     },
     { 
-      title: "Datos vs Citas", 
-      value: "4,5", 
-      description: "¿Cuántos datos para 1 cita?",
-      target: "VR: menor a 4",
-      color: "bg-yellow-400"
+      title: 'Datos vs Citas', 
+      value: '4,5', 
+      description: '¿Cuántos datos para 1 cita?',
+      target: 'VR: menor a 4',
+      color: 'bg-yellow-400',
     },
     { 
-      title: "Datos vs Ventas", 
-      value: "13,9", 
-      description: "¿Cuántos datos para 1 Venta?",
-      target: "VR: menor a 14",
-      color: "bg-green-400"
+      title: 'Datos vs Ventas', 
+      value: '13,9', 
+      description: '¿Cuántos datos para 1 Venta?',
+      target: 'VR: menor a 14',
+      color: 'bg-green-400',
     },
     { 
-      title: "Demo vs Venta", 
-      value: "1,9", 
-      description: "¿Cuántas demos para 1 Venta?",
-      target: "VR: menor a 2",
-      color: "bg-green-400"
-    }
+      title: 'Demo vs Venta', 
+      value: '1,9', 
+      description: '¿Cuántas demos para 1 Venta?',
+      target: 'VR: menor a 2',
+      color: 'bg-green-400',
+    },
   ];
 
   // Datos KPIs PostVenta
   const postSaleKpis = [
     { 
-      title: "Cita vs Demo PV", 
-      value: "1,3", 
-      description: "Citas a demos postventa",
-      target: "VR: menor a 1.5",
-      color: "bg-green-400"
+      title: 'Cita vs Demo PV', 
+      value: '1,3', 
+      description: 'Citas a demos postventa',
+      target: 'VR: menor a 1.5',
+      color: 'bg-green-400',
     },
     { 
-      title: "Demo vs Venta PV", 
-      value: "2,1", 
-      description: "Demos a ventas postventa",
-      target: "VR: menor a 2",
-      color: "bg-yellow-400"
-    }
+      title: 'Demo vs Venta PV', 
+      value: '2,1', 
+      description: 'Demos a ventas postventa',
+      target: 'VR: menor a 2',
+      color: 'bg-yellow-400',
+    },
   ];
 
   // Datos del embudo para nuevos clientes
   const newClientsFunnelData = {
     totalLeads: 530,
-    leads_label: "Datos",
+    leads_label: 'Datos',
     meetings: 117,
     meetings_percentage: 22,
-    meetings_label: "Citas",
+    meetings_label: 'Citas',
     demos: 74,
     demos_percentage: 14,
-    demos_label: "Demos",
+    demos_label: 'Demos',
     sales: 38,
     sales_percentage: 7,
-    sales_label: "Ventas",
+    sales_label: 'Ventas',
     closeRate: 51,
-    avgTicket: 518.46
+    avgTicket: 518.46,
   };
 
   // Datos del embudo para postventa
   const postSaleFunnelData = {
     totalLeads: 75,
-    leads_label: "Citas Postventa",
+    leads_label: 'Citas Postventa',
     meetings: 58,
     meetings_percentage: 77,
-    meetings_label: "Demos Postventa", 
+    meetings_label: 'Demos Postventa',
     sales: 28,
     sales_percentage: 37,
-    sales_label: "Venta postventa",
-    closeRate: 48
+    sales_label: 'Venta postventa',
+    closeRate: 48,
   };
 
   // Lista de vendedores para el filtro
@@ -108,6 +112,7 @@ const FunnelPage = () => {
 
   return (
     <div className="p-6">
+      {/* Cabecera de la página */}
       <div className="flex justify-between items-center mb-6">
         <Title order={2}>Embudo de Ventas</Title>
         <Group>
@@ -188,7 +193,7 @@ const FunnelPage = () => {
         />
       </div>
 
-      {/* Secciones de KPIs */}
+      {/* Sección de KPIs */}
       <div className="mb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -222,24 +227,23 @@ const FunnelPage = () => {
                     color={kpi.color}
                     animate={true}
                   />
-                ))
-            }
+                ))}
           </div>
         </motion.div>
       </div>
 
-      {/* Selector de tipo de embudo */}
+      {/* Botones para cambiar el tipo de embudo (Nuevos / Postventa) */}
       <div className="mb-8">
         <div className="flex gap-4">
-          <Button 
-            variant={funnelType === 'nuevos' ? "filled" : "outline"}
+          <Button
+            variant={funnelType === 'nuevos' ? 'filled' : 'outline'}
             onClick={() => setFunnelType('nuevos')}
             className="flex-1"
           >
             Nuevos Clientes
           </Button>
-          <Button 
-            variant={funnelType === 'postventa' ? "filled" : "outline"}
+          <Button
+            variant={funnelType === 'postventa' ? 'filled' : 'outline'}
             onClick={() => setFunnelType('postventa')}
             className="flex-1"
           >
@@ -248,18 +252,25 @@ const FunnelPage = () => {
         </div>
       </div>
 
-      {/* Sección del embudo */}
+      {/* Sección del embudo (gráfico + tabla) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Embudo principal */}
-        <SalesFunnel 
-          type={funnelType} 
-          data={funnelType === 'nuevos' ? newClientsFunnelData : postSaleFunnelData} 
+        <SalesFunnel
+          type={funnelType}
+          data={
+            funnelType === 'nuevos'
+              ? newClientsFunnelData
+              : postSaleFunnelData
+          }
         />
 
         {/* Tabla del embudo */}
         <Paper p="xl" radius="md" shadow="sm">
           <Title order={3} className="mb-4">
-            Detalle del Embudo de {funnelType === 'nuevos' ? 'Nuevos Clientes' : 'Postventa'}
+            Detalle del Embudo de{' '}
+            {funnelType === 'nuevos'
+              ? 'Nuevos Clientes'
+              : 'Postventa'}
           </Title>
           
           <div className="overflow-x-auto">
@@ -270,14 +281,17 @@ const FunnelPage = () => {
                     Vendedor
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Datos
+                    {funnelType === 'nuevos' ? 'Datos' : 'Citas PV'}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Citas
+                    {funnelType === 'nuevos' ? 'Citas' : 'Demos PV'}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Demos
-                  </th>
+                  {/* Mostrar columna de "Demos" solo si es "nuevos" */}
+                  {funnelType === 'nuevos' && (
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Demos
+                    </th>
+                  )}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ventas
                   </th>
@@ -286,23 +300,31 @@ const FunnelPage = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 <tr>
                   <td className="px-6 py-4 whitespace-nowrap">Isabel Jauregui</td>
-                  <td className="px-6 py-4 whitespace-nowrap bg-green-100">530</td>
+                  <td className="px-6 py-4 whitespace-nowrap bg-green-100">
+                    {funnelType === 'nuevos' ? '530' : '75'}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">117</td>
-                  <td className="px-6 py-4 whitespace-nowrap">74</td>
+                  {funnelType === 'nuevos' && (
+                    <td className="px-6 py-4 whitespace-nowrap">74</td>
+                  )}
                   <td className="px-6 py-4 whitespace-nowrap">38</td>
                 </tr>
                 <tr>
                   <td className="px-6 py-4 whitespace-nowrap">Eloy Giordano</td>
                   <td className="px-6 py-4 whitespace-nowrap">456</td>
                   <td className="px-6 py-4 whitespace-nowrap">143</td>
-                  <td className="px-6 py-4 whitespace-nowrap">103</td>
+                  {funnelType === 'nuevos' && (
+                    <td className="px-6 py-4 whitespace-nowrap">103</td>
+                  )}
                   <td className="px-6 py-4 whitespace-nowrap">83</td>
                 </tr>
                 <tr>
                   <td className="px-6 py-4 whitespace-nowrap">Melisa Arias</td>
                   <td className="px-6 py-4 whitespace-nowrap">339</td>
                   <td className="px-6 py-4 whitespace-nowrap">90</td>
-                  <td className="px-6 py-4 whitespace-nowrap">63</td>
+                  {funnelType === 'nuevos' && (
+                    <td className="px-6 py-4 whitespace-nowrap">63</td>
+                  )}
                   <td className="px-6 py-4 whitespace-nowrap">24</td>
                 </tr>
               </tbody>
@@ -311,7 +333,7 @@ const FunnelPage = () => {
         </Paper>
       </div>
 
-      {/* Gráficos circulares */}
+      {/* Gráficos o paneles adicionales */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
         <Paper p="xl" radius="md" shadow="sm">
           <Title order={3} className="mb-4">Distribución de Demos</Title>
@@ -321,7 +343,10 @@ const FunnelPage = () => {
                 <div className="text-4xl font-bold">
                   {funnelType === 'nuevos' ? '74' : '58'}
                 </div>
-                <div>Demos {funnelType === 'postventa' ? 'Postventa' : ''}</div>
+                <div>
+                  Demos{' '}
+                  {funnelType === 'postventa' ? 'Postventa' : ''}
+                </div>
               </div>
             </div>
           </div>
@@ -329,18 +354,21 @@ const FunnelPage = () => {
 
         <Paper p="xl" radius="md" shadow="sm">
           <Title order={3} className="mb-4">Métricas Clave</Title>
-          
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
-                <Text size="sm" color="dimmed">% de cierre</Text>
+                <Text size="sm" color="dimmed">
+                  % de cierre
+                </Text>
                 <Title order={3}>
                   {funnelType === 'nuevos' ? '51%' : '48%'}
                 </Title>
               </div>
               
               <div>
-                <Text size="sm" color="dimmed">Total Demos</Text>
+                <Text size="sm" color="dimmed">
+                  Total Demos
+                </Text>
                 <Title order={3}>
                   {funnelType === 'nuevos' ? '74' : '58'}
                 </Title>
@@ -350,7 +378,7 @@ const FunnelPage = () => {
             {funnelType === 'nuevos' && (
               <div>
                 <Text size="sm" color="dimmed">Ticket de venta</Text>
-                <Title order={3}>518,46</Title>
+                <Title order={3}>$518.46</Title>
               </div>
             )}
           </div>
