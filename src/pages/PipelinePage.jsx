@@ -453,8 +453,8 @@ const PipelinePage = () => {
         setIsModalOpen(true);
     };
 
-      // Método para editar un elemento existente
-      const handleEditItem = (item) => {
+    // Método para editar un elemento existente
+    const handleEditItem = (item) => {
         console.log("Editando elemento:", item);
         // Hacer una copia profunda para evitar problemas de referencia
         setCurrentItem(JSON.parse(JSON.stringify(item)));
@@ -488,7 +488,6 @@ const PipelinePage = () => {
     };
 
     // Método para guardar un elemento (nuevo o editado)
-    // Método para guardar un elemento (nuevo o editado)
     const handleSubmitItem = (itemData) => {
         const { status, ...rest } = itemData;
 
@@ -498,13 +497,11 @@ const PipelinePage = () => {
             return;
         }
 
-        // Para depuración
         console.log("Guardando elemento:", itemData);
 
         if (currentItem) {
             // Editar - actualizar el elemento existente
             setColumns(prev => {
-                // Crear una copia profunda para trabajar con ella
                 const allColumns = JSON.parse(JSON.stringify(prev));
                 let found = false;
 
@@ -515,32 +512,26 @@ const PipelinePage = () => {
 
                     if (itemIndex >= 0) {
                         found = true;
-                        // Si encontramos el elemento
                         if (colId === status) {
-                            // Si permanece en la misma columna, actualizamos sus datos
                             allColumns[colId].items[itemIndex] = {
                                 ...rest,
-                                id: currentItem.id // Preservar el ID original
+                                id: currentItem.id
                             };
                         } else {
-                            // Si cambia de columna, lo quitamos de la columna actual
                             allColumns[colId].items.splice(itemIndex, 1);
-
-                            // Y lo añadimos a la nueva columna
                             allColumns[status].items.push({
                                 ...rest,
-                                id: currentItem.id // Preservar el ID original
+                                id: currentItem.id
                             });
                         }
                     }
                 });
 
-                // Si no se encontró el elemento, lo agregamos a la columna de destino
                 if (!found) {
                     console.warn("Elemento no encontrado para edición, agregándolo a la columna:", status);
                     allColumns[status].items.push({
                         ...rest,
-                        id: currentItem.id // Preservar el ID original
+                        id: currentItem.id
                     });
                 }
 
@@ -551,7 +542,7 @@ const PipelinePage = () => {
             setColumns(prev => {
                 const newItem = {
                     ...rest,
-                    id: `task-${Date.now()}` // Generar un ID único
+                    id: `task-${Date.now()}`
                 };
 
                 return {
@@ -601,8 +592,7 @@ const PipelinePage = () => {
                                         <div
                                             {...provided.droppableProps}
                                             ref={provided.innerRef}
-                                            className={`min-h-[200px] rounded-lg p-2 ${snapshot.isDraggingOver ? 'bg-blue-50' : 'bg-gray-50'
-                                                }`}
+                                            className={`h-96 overflow-y-auto rounded-lg p-2 ${snapshot.isDraggingOver ? 'bg-blue-50' : 'bg-gray-50'}`}
                                         >
                                             {column.items.map((item, index) => (
                                                 <Draggable
