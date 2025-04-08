@@ -1,6 +1,8 @@
+// src/pages/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Select } from '@mantine/core';
 import fondo from "../assets/login.jpg";
 import logo from "../assets/logo_login.png";
 
@@ -9,24 +11,26 @@ const LoginForm = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    remember: false
+    remember: false,
+    role: 'EMPRENDEDOR'  // Rol por defecto
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.email === 'admin' && formData.password === 'admin123') {
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('user', JSON.stringify({
-        nombre: 'Gimena',
-        apellido: 'Gonzalez',
-        email: formData.email
-      }));
-      navigate('/');
-    } else {
-      setError('Credenciales inválidas');
-    }
+    
+    // Para propósitos de prueba, aceptamos cualquier credencial
+    // En producción, esto debe ser reemplazado por una autenticación real
+    localStorage.setItem('isAuthenticated', 'true');
+    localStorage.setItem('user', JSON.stringify({
+      id: formData.role === 'EMPRENDEDOR' ? '1' : '0', // ID ficticio basado en rol
+      nombre: 'Usuario',
+      apellido: 'Demo',
+      email: formData.email,
+      rol: formData.role // Importante: guardar el rol seleccionado
+    }));
+    navigate('/');
   };
 
   return (
@@ -108,7 +112,7 @@ const LoginForm = () => {
                 Usuario
               </label>
               <div className="relative">
-                {/* Icono con un círculo de fondo para hacerlo más visible */}
+                {/* Icono con un círculo de fondo */}
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <div className="bg-blue-500 rounded-full p-1">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -131,7 +135,7 @@ const LoginForm = () => {
                 Contraseña
               </label>
               <div className="relative">
-                {/* Icono con un círculo de fondo para hacerlo más visible */}
+                {/* Icono con un círculo de fondo */}
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <div className="bg-blue-500 rounded-full p-1">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -154,6 +158,42 @@ const LoginForm = () => {
                   {showPassword ? "Ocultar" : "Mostrar"}
                 </button>
               </div>
+            </div>
+
+            {/* Selector de Rol (para pruebas) */}
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">
+                Seleccione su Rol (demo)
+              </label>
+              <Select
+                value={formData.role}
+                onChange={(value) => setFormData({ ...formData, role: value })}
+                data={[
+                  { value: 'SUPER ADMINISTRADOR', label: 'Super Administrador' },
+                  { value: 'DISTRIBUIDOR', label: 'Distribuidor' },
+                  { value: 'EMPRENDEDOR', label: 'Emprendedor' },
+                  { value: 'ASISTENTE COMERCIAL', label: 'Asistente Comercial' }
+                ]}
+                className="bg-white/20 border border-white/50 rounded-lg"
+                styles={{
+                  input: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    color: 'white',
+                    border: 'none'
+                  },
+                  item: {
+                    '&[data-selected]': {
+                      backgroundColor: '#3b82f6',
+                      color: 'white'
+                    }
+                  },
+                  dropdown: {
+                    backgroundColor: 'rgba(30, 58, 138, 0.9)',
+                    backdropFilter: 'blur(12px)',
+                    color: 'white'
+                  }
+                }}
+              />
             </div>
 
             <div className="flex items-center justify-between">
@@ -189,7 +229,7 @@ const LoginForm = () => {
           </form>
 
           <div className="mt-6 text-center text-sm text-white pt-4 border-t border-white/20">
-            <p>Credenciales de prueba: admin / admin123</p>
+            <p>Modo demostración - Inicie sesión con cualquier dato</p>
           </div>
         </motion.div>
       </motion.div>
