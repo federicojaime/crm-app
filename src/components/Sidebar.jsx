@@ -9,7 +9,7 @@ import {
     IconSettings,
     IconChevronLeft,
     IconChevronRight,
-    IconUserPlus, 
+    IconUserPlus,
     IconCalendarTime,
     IconBriefcase,
     IconUserCheck,
@@ -22,7 +22,7 @@ export default function Sidebar() {
     const [expanded, setExpanded] = useState(true);
     const location = useLocation();
     const [userRole, setUserRole] = useState('');
-    
+
     // Estado para almacenar el estado de los menús desplegables
     // Inicializamos un objeto vacío que se llenará con IDs de menú
     const [subMenuOpenState, setSubMenuOpenState] = useState({});
@@ -57,7 +57,7 @@ export default function Sidebar() {
         const initialSubMenuState = {};
         menuItems.forEach(item => {
             if (item.subItems) {
-                const hasActiveSubItem = item.subItems.some(subItem => 
+                const hasActiveSubItem = item.subItems.some(subItem =>
                     location.pathname.startsWith(subItem.to)
                 );
                 initialSubMenuState[item.to] = hasActiveSubItem;
@@ -67,8 +67,8 @@ export default function Sidebar() {
     }, [location.pathname]);
 
     // Definición del menú con control de acceso por rol
-     // Definición del menú con control de acceso por rol
-     const menuItems = [
+    // Updated role-based menu
+    const menuItems = [
         {
             icon: IconDashboard,
             label: 'Panel de Control',
@@ -103,25 +103,25 @@ export default function Sidebar() {
             icon: IconChartBar,
             label: 'Estadísticas',
             to: '/statistics',
-            roles: ['SUPER ADMINISTRADOR', 'DISTRIBUIDOR'], // Solo accesible para administradores y distribuidores
+            roles: ['SUPER_ADMIN', 'DISTRIBUIDOR'], // Solo para Super Admin y Distribuidor
             subItems: [
                 {
                     icon: IconTrendingUp,
                     label: 'Desempeño',
                     to: '/statistics/performance',
-                    roles: ['SUPER ADMINISTRADOR', 'DISTRIBUIDOR'],
+                    roles: ['SUPER_ADMIN', 'DISTRIBUIDOR'],
                 },
                 {
                     icon: IconGitPullRequest,
                     label: 'Embudo de Ventas',
                     to: '/statistics/funnel',
-                    roles: ['SUPER ADMINISTRADOR', 'DISTRIBUIDOR'],
+                    roles: ['SUPER_ADMIN', 'DISTRIBUIDOR'],
                 },
                 {
                     icon: IconUsers,
                     label: 'Agentes',
                     to: '/statistics/agents',
-                    roles: ['SUPER ADMINISTRADOR', 'DISTRIBUIDOR'],
+                    roles: ['SUPER_ADMIN', 'DISTRIBUIDOR'],
                 }
             ]
         },
@@ -129,24 +129,23 @@ export default function Sidebar() {
             icon: IconBriefcase,
             label: 'RRHH',
             to: '/rrhh',
-            roles: ['SUPER ADMINISTRADOR', 'DISTRIBUIDOR', 'ASISTENTE COMERCIAL'], // No accesible para Emprendedor
+            roles: ['SUPER_ADMIN', 'DISTRIBUIDOR', 'ASISTENTE_RRHH'], // Acceso para RRHH
         },
         {
             icon: IconSettings,
             label: 'Configuración',
             to: '/settings',
-            roles: ['SUPER ADMINISTRADOR', 'DISTRIBUIDOR'],
+            roles: ['SUPER_ADMIN', 'DISTRIBUIDOR'],
             subItems: [
                 {
                     icon: IconUserPlus,
                     label: 'Usuarios',
                     to: '/users',
-                    roles: ['SUPER ADMINISTRADOR', 'DISTRIBUIDOR'],
+                    roles: ['SUPER_ADMIN', 'DISTRIBUIDOR'],
                 }
             ]
         },
     ];
-
     // Filtrar elementos del menú según el rol del usuario
     const filteredMenuItems = menuItems.filter(item => hasAccess(item.roles));
 
@@ -197,9 +196,9 @@ export default function Sidebar() {
                             : location.pathname.startsWith(item.to);
 
                         const hasSubItems = item.subItems && item.subItems.length > 0;
-                        
+
                         // Filtrar subitems según rol
-                        const filteredSubItems = hasSubItems 
+                        const filteredSubItems = hasSubItems
                             ? item.subItems.filter(subItem => hasAccess(subItem.roles))
                             : [];
 

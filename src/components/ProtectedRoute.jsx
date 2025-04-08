@@ -8,6 +8,7 @@ export default function ProtectedRoute({ requiredRoles = [] }) {
     // Obtener el usuario actual y su rol
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const userRole = user.rol || '';
+    const userSubRole = user.subRol || '';
 
     // Si no está autenticado, redirigir a login
     if (!isAuthenticated) {
@@ -16,7 +17,17 @@ export default function ProtectedRoute({ requiredRoles = [] }) {
 
     // Si hay roles requeridos, verificar que el usuario tenga el rol apropiado
     if (requiredRoles.length > 0) {
-        const hasRequiredRole = requiredRoles.includes(userRole);
+        const hasRequiredRole = requiredRoles.some(role => {
+            // Verificar rol principal
+            if (role === userRole) return true;
+            
+            // Verificar sub-roles para 'ASISTENTE'
+            if (userRole === 'ASISTENTE') {
+                return role === userSubRole;
+            }
+            
+            return false;
+        });
 
         // Si no tiene ninguno de los roles requeridos, mostrar página no autorizada
         if (!hasRequiredRole) {

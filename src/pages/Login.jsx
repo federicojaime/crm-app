@@ -16,10 +16,26 @@ const LoginForm = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  // Handle sub-roles for assistants
+  const userData = {
+    id: formData.role === 'EMPRENDEDOR' ? '1' : '0', // ID ficticio basado en rol
+    nombre: 'Usuario',
+    apellido: 'Demo',
+    email: formData.email,
+    rol: formData.role // Main role
+  };
+  
 
+  // If the role is 'ASISTENTE', add the sub-role
+  if (formData.role === 'ASISTENTE') {
+    // Add a sub-role selection mechanism for assistants
+    userData.subRol = formData.subRole; // User must select a specific sub-role
+  }
+
+  localStorage.setItem('user', JSON.stringify(userData));
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Para propósitos de prueba, aceptamos cualquier credencial
     // En producción, esto debe ser reemplazado por una autenticación real
     localStorage.setItem('isAuthenticated', 'true');
@@ -169,10 +185,18 @@ const LoginForm = () => {
                 value={formData.role}
                 onChange={(value) => setFormData({ ...formData, role: value })}
                 data={[
-                  { value: 'SUPER ADMINISTRADOR', label: 'Super Administrador' },
-                  { value: 'DISTRIBUIDOR', label: 'Distribuidor' },
-                  { value: 'EMPRENDEDOR', label: 'Emprendedor' },
-                  { value: 'ASISTENTE COMERCIAL', label: 'Asistente Comercial' }
+                  { value: 'SUPER_ADMIN', label: '1. Super Administrador' },
+                  { value: 'DISTRIBUIDOR', label: '2. Distribuidor' },
+                  { value: 'EMPRENDEDOR', label: '3. Emprendedor' },
+                  {
+                    value: 'ASISTENTE',
+                    label: '4. Asistente',
+                    subRoles: [
+                      { value: 'ASISTENTE_RRHH', label: 'RRHH' },
+                      { value: 'ASISTENTE_COMERCIAL', label: 'Comercial' },
+                      { value: 'ASISTENTE_ADMINISTRATIVO', label: 'Administrativo' }
+                    ]
+                  }
                 ]}
                 className="bg-white/20 border border-white/50 rounded-lg"
                 styles={{

@@ -3,11 +3,20 @@ import { useForm } from '@mantine/form';
 import { IconX, IconLock, IconAt, IconPhone, IconUser } from '@tabler/icons-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Updated user roles
 const userRoles = [
-  { value: 'SUPER ADMINISTRADOR', label: '1. Super Administrador' },
+  { value: 'SUPER_ADMIN', label: '1. Super Administrador' },
   { value: 'DISTRIBUIDOR', label: '2. Distribuidor' },
   { value: 'EMPRENDEDOR', label: '3. Emprendedor' },
-  { value: 'ASISTENTE COMERCIAL', label: '4. Asistente Comercial' },
+  { 
+    value: 'ASISTENTE', 
+    label: '4. Asistente', 
+    subRoles: [
+      { value: 'ASISTENTE_RRHH', label: 'RRHH' },
+      { value: 'ASISTENTE_COMERCIAL', label: 'Comercial' },
+      { value: 'ASISTENTE_ADMINISTRATIVO', label: 'Administrativo' }
+    ]
+  }
 ];
 
 const AddUserModal = ({ opened, onClose, onSave, initialValues }) => {
