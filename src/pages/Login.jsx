@@ -16,36 +16,28 @@ const LoginForm = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  // Handle sub-roles for assistants
+
+  // Manejar sub-roles para asistentes
   const userData = {
     id: formData.role === 'EMPRENDEDOR' ? '1' : '0', // ID ficticio basado en rol
     nombre: 'Usuario',
     apellido: 'Demo',
     email: formData.email,
-    rol: formData.role // Main role
+    rol: formData.role // Rol principal
   };
   
-
-  // If the role is 'ASISTENTE', add the sub-role
+  // Si el rol es 'ASISTENTE', agregar el sub-rol
   if (formData.role === 'ASISTENTE') {
-    // Add a sub-role selection mechanism for assistants
-    userData.subRol = formData.subRole; // User must select a specific sub-role
+    userData.subRol = formData.subRole; // El usuario debe seleccionar un sub-rol específico
   }
 
-  localStorage.setItem('user', JSON.stringify(userData));
   const handleSubmit = (e) => {
     e.preventDefault();
 
     // Para propósitos de prueba, aceptamos cualquier credencial
     // En producción, esto debe ser reemplazado por una autenticación real
     localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('user', JSON.stringify({
-      id: formData.role === 'EMPRENDEDOR' ? '1' : '0', // ID ficticio basado en rol
-      nombre: 'Usuario',
-      apellido: 'Demo',
-      email: formData.email,
-      rol: formData.role // Importante: guardar el rol seleccionado
-    }));
+    localStorage.setItem('user', JSON.stringify(userData));
     navigate('/');
   };
 
@@ -185,16 +177,16 @@ const LoginForm = () => {
                 value={formData.role}
                 onChange={(value) => setFormData({ ...formData, role: value })}
                 data={[
-                  { value: 'SUPER_ADMIN', label: '1. Super Administrador' },
+                  { value: 'SUPER ADMINISTRADOR', label: '1. Super Administrador' },
                   { value: 'DISTRIBUIDOR', label: '2. Distribuidor' },
                   { value: 'EMPRENDEDOR', label: '3. Emprendedor' },
                   {
                     value: 'ASISTENTE',
                     label: '4. Asistente',
                     subRoles: [
-                      { value: 'ASISTENTE_RRHH', label: 'RRHH' },
-                      { value: 'ASISTENTE_COMERCIAL', label: 'Comercial' },
-                      { value: 'ASISTENTE_ADMINISTRATIVO', label: 'Administrativo' }
+                      { value: 'RRHH', label: 'RRHH' },
+                      { value: 'COMERCIAL', label: 'Comercial' },
+                      { value: 'ADMINISTRATIVO', label: 'Administrativo' }
                     ]
                   }
                 ]}
@@ -217,7 +209,51 @@ const LoginForm = () => {
                     color: 'white'
                   }
                 }}
+                onChange={(value) => {
+                  setFormData(prev => {
+                    const newData = { ...prev, role: value };
+                    if (value === 'ASISTENTE') {
+                      newData.subRole = ''; // Limpiar el sub-rol si cambia a Asistente
+                    } else {
+                      delete newData.subRole; // Eliminar el sub-rol si cambia a otro rol
+                    }
+                    return newData;
+                  });
+                }}
               />
+              
+              {/* Selector de sub-rol para Asistente */}
+              {formData.role === 'ASISTENTE' && (
+                <Select
+                  label="Sub-rol de Asistente"
+                  value={formData.subRole}
+                  onChange={(value) => setFormData({ ...formData, subRole: value })}
+                  data={[
+                    { value: 'RRHH', label: 'RRHH' },
+                    { value: 'COMERCIAL', label: 'Comercial' },
+                    { value: 'ADMINISTRATIVO', label: 'Administrativo' }
+                  ]}
+                  className="mt-2 bg-white/20 border border-white/50 rounded-lg"
+                  styles={{
+                    input: {
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      color: 'white',
+                      border: 'none'
+                    },
+                    item: {
+                      '&[data-selected]': {
+                        backgroundColor: '#3b82f6',
+                        color: 'white'
+                      }
+                    },
+                    dropdown: {
+                      backgroundColor: 'rgba(30, 58, 138, 0.9)',
+                      backdropFilter: 'blur(12px)',
+                      color: 'white'
+                    }
+                  }}
+                />
+              )}
             </div>
 
             <div className="flex items-center justify-between">

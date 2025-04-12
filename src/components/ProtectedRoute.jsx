@@ -23,7 +23,7 @@ export default function ProtectedRoute({ requiredRoles = [] }) {
             
             // Verificar sub-roles para 'ASISTENTE'
             if (userRole === 'ASISTENTE') {
-                return role === userSubRole;
+                return role === `ASISTENTE_${userSubRole}`;
             }
             
             return false;

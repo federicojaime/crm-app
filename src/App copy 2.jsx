@@ -20,9 +20,6 @@ import PerformancePage from './pages/statistics/PerformancePage';
 import FunnelPage from './pages/statistics/FunnelPage';
 import AgentsPage from './pages/statistics/AgentsPage';
 
-// Tareas
-import TaskManagement from './components/tasks/TaskManagement';
-
 const queryClient = new QueryClient();
 
 export default function App() {
@@ -40,10 +37,8 @@ export default function App() {
               <Route element={<Layout />}>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/clients" element={<ClientsPage />} />
-                <Route path="/clients/:id" element={<ClientsPage />} />
                 <Route path="/sales" element={<SalesPage />} />
                 <Route path="/pipeline" element={<PipelinePage />} />
-                <Route path="/tasks" element={<TaskManagement />} />
               </Route>
             </Route>
 
