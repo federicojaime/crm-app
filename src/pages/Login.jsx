@@ -12,33 +12,59 @@ const LoginForm = () => {
     email: '',
     password: '',
     remember: false,
-    role: 'EMPRENDEDOR'  // Rol por defecto
+    role: 'EMPRENDEDOR',  // Rol por defecto
+    subRole: ''  // Inicializar subRole como string vacío
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
-  // Manejar sub-roles para asistentes
-  const userData = {
-    id: formData.role === 'EMPRENDEDOR' ? '1' : '0', // ID ficticio basado en rol
-    nombre: 'Usuario',
-    apellido: 'Demo',
-    email: formData.email,
-    rol: formData.role // Rol principal
+  // Preparar los datos del usuario para almacenamiento
+  const prepareUserData = () => {
+    const userData = {
+      id: formData.role === 'EMPRENDEDOR' ? '1' : '0', // ID ficticio basado en rol
+      nombre: 'Usuario',
+      apellido: 'Demo',
+      email: formData.email,
+      rol: formData.role // Rol principal
+    };
+    
+    // Si el rol es 'ASISTENTE', agregar el sub-rol
+    if (formData.role === 'ASISTENTE' && formData.subRole) {
+      userData.subRol = formData.subRole;
+    }
+    
+    return userData;
   };
-  
-  // Si el rol es 'ASISTENTE', agregar el sub-rol
-  if (formData.role === 'ASISTENTE') {
-    userData.subRol = formData.subRole; // El usuario debe seleccionar un sub-rol específico
-  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    
     // Para propósitos de prueba, aceptamos cualquier credencial
     // En producción, esto debe ser reemplazado por una autenticación real
+    const userData = prepareUserData();
     localStorage.setItem('isAuthenticated', 'true');
     localStorage.setItem('user', JSON.stringify(userData));
     navigate('/');
+  };
+
+  // Manejar cambio de rol
+  const handleRoleChange = (value) => {
+    setFormData(prev => {
+      const newData = { ...prev, role: value };
+      // Si no es asistente, limpiamos el subRole
+      if (value !== 'ASISTENTE') {
+        newData.subRole = '';
+      }
+      return newData;
+    });
+  };
+
+  // Manejar cambio de sub-rol
+  const handleSubRoleChange = (value) => {
+    setFormData(prev => ({
+      ...prev,
+      subRole: value
+    }));
   };
 
   return (
@@ -175,20 +201,12 @@ const LoginForm = () => {
               </label>
               <Select
                 value={formData.role}
-                onChange={(value) => setFormData({ ...formData, role: value })}
+                onChange={handleRoleChange}
                 data={[
-                  { value: 'SUPER ADMINISTRADOR', label: '1. Super Administrador' },
+                  { value: 'SUPER_ADMIN', label: '1. Super Administrador' },
                   { value: 'DISTRIBUIDOR', label: '2. Distribuidor' },
                   { value: 'EMPRENDEDOR', label: '3. Emprendedor' },
-                  {
-                    value: 'ASISTENTE',
-                    label: '4. Asistente',
-                    subRoles: [
-                      { value: 'RRHH', label: 'RRHH' },
-                      { value: 'COMERCIAL', label: 'Comercial' },
-                      { value: 'ADMINISTRATIVO', label: 'Administrativo' }
-                    ]
-                  }
+                  { value: 'ASISTENTE', label: '4. Asistente' }
                 ]}
                 className="bg-white/20 border border-white/50 rounded-lg"
                 styles={{
@@ -201,58 +219,62 @@ const LoginForm = () => {
                     '&[data-selected]': {
                       backgroundColor: '#3b82f6',
                       color: 'white'
+                    },
+                    '&:hover': {
+                      backgroundColor: '#1e40af', // Un azul más oscuro para el hover
+                      color: 'white'
                     }
                   },
                   dropdown: {
                     backgroundColor: 'rgba(30, 58, 138, 0.9)',
                     backdropFilter: 'blur(12px)',
-                    color: 'white'
+                    color: 'white',
+                    zIndex: 1000  // Asegurar que el dropdown esté por encima
                   }
-                }}
-                onChange={(value) => {
-                  setFormData(prev => {
-                    const newData = { ...prev, role: value };
-                    if (value === 'ASISTENTE') {
-                      newData.subRole = ''; // Limpiar el sub-rol si cambia a Asistente
-                    } else {
-                      delete newData.subRole; // Eliminar el sub-rol si cambia a otro rol
-                    }
-                    return newData;
-                  });
                 }}
               />
               
               {/* Selector de sub-rol para Asistente */}
               {formData.role === 'ASISTENTE' && (
-                <Select
-                  label="Sub-rol de Asistente"
-                  value={formData.subRole}
-                  onChange={(value) => setFormData({ ...formData, subRole: value })}
-                  data={[
-                    { value: 'RRHH', label: 'RRHH' },
-                    { value: 'COMERCIAL', label: 'Comercial' },
-                    { value: 'ADMINISTRATIVO', label: 'Administrativo' }
-                  ]}
-                  className="mt-2 bg-white/20 border border-white/50 rounded-lg"
-                  styles={{
-                    input: {
-                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                      color: 'white',
-                      border: 'none'
-                    },
-                    item: {
-                      '&[data-selected]': {
-                        backgroundColor: '#3b82f6',
-                        color: 'white'
+                <div className="mt-3">
+                  <label className="block text-sm font-medium mb-1 text-white">
+                    Sub-rol de Asistente
+                  </label>
+                  <Select
+                    placeholder="Seleccione un sub-rol"
+                    value={formData.subRole}
+                    onChange={handleSubRoleChange}
+                    data={[
+                      { value: 'RRHH', label: 'RRHH' },
+                      { value: 'COMERCIAL', label: 'Comercial' },
+                      { value: 'ADMINISTRATIVO', label: 'Administrativo' }
+                    ]}
+                    className="bg-white/20 border border-white/50 rounded-lg"
+                    styles={{
+                      input: {
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        color: 'white',
+                        border: 'none'
+                      },
+                      item: {
+                        '&[data-selected]': {
+                          backgroundColor: '#3b82f6',
+                          color: 'white'
+                        },
+                        '&:hover': {
+                          backgroundColor: 'black', // Un azul más oscuro para el hover
+                          color: 'black'
+                        }
+                      },
+                      dropdown: {
+                        backgroundColor: 'rgba(30, 58, 138, 0.9)',
+                        backdropFilter: 'blur(12px)',
+                        color: 'white',
+                        zIndex: 1000  // Asegurar que el dropdown esté por encima
                       }
-                    },
-                    dropdown: {
-                      backgroundColor: 'rgba(30, 58, 138, 0.9)',
-                      backdropFilter: 'blur(12px)',
-                      color: 'white'
-                    }
-                  }}
-                />
+                    }}
+                  />
+                </div>
               )}
             </div>
 
@@ -297,4 +319,4 @@ const LoginForm = () => {
   );
 };
 
-export default LoginForm;
+export default LoginForm; 

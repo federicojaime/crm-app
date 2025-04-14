@@ -30,7 +30,6 @@ import SyncContactsModal from '../components/modals/SyncContactsModal';
 
 const columns = [
     { key: 'name', label: 'Nombre' },
-    { key: 'email', label: 'Correo' },
     { key: 'phone', label: 'Teléfono' },
     { key: 'status', label: 'Estado' },
     { key: 'source', label: 'Fuente' },
@@ -679,11 +678,7 @@ const ClientsPage = () => {
                                                                 </span>
                                                             </div>
                                                         </td>
-                                                        <td className="px-4 py-3 border border-gray-300">
-                                                            <a href={`mailto:${client.email}`} className="text-[#508ecb] hover:underline">
-                                                                {client.email}
-                                                            </a>
-                                                        </td>
+                                                       
                                                         <td className="px-4 py-3 border border-gray-300">{client.telefono}</td>
                                                         <td className="px-4 py-3 border border-gray-300">
                                                             <ClientStatusBadge status={client.estado} />

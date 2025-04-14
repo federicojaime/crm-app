@@ -19,4 +19,26 @@ body {
 
 .bg-gradient {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}/* fuerza el color del ítem que Mantine marca como hovered */
+/* Estilos para los items del dropdown */
+.mantine-Select-dropdown .mantine-Select-item {
+  color: white !important;
+}
+
+/* Estilo para hover */
+.mantine-Select-dropdown .mantine-Select-item:hover,
+.mantine-Select-dropdown .mantine-Select-item[data-hovered="true"] {
+  background-color: #1e40af !important;
+  color: white !important;
+}
+
+/* Estilo para el item seleccionado */
+.mantine-Select-dropdown .mantine-Select-item[data-selected="true"] {
+  background-color: #3b82f6 !important;
+  color: white !important;
+}
+@media (hover: hover) {
+  :where([data-mantine-color-scheme='light']) .m_92253aa5:hover:where(:not([data-combobox-selected], [data-combobox-disabled])) {
+      background-color: #3b82f6;
+  }
 }

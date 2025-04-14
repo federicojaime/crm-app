@@ -1,14 +1,19 @@
 // src/components/modals/UserFormModal.jsx
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, User, At, Phone, Lock, Check } from 'lucide-react';
+import { X, Save, User, At, Lock, Check, AlertCircle } from 'lucide-react';
 import UserService from '../../services/UserService';
 import AuthService from '../../services/AuthService';
 
-const UserFormModal = ({ isOpen, onClose, initialValues = null, onSaved }) => {
+// Límite máximo de usuarios permitidos
+const USER_LIMIT = 10;
+
+const UserFormModal = ({ isOpen, onClose, initialValues = null, onSaved, currentUser }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [warning, setWarning] = useState('');
   const [roles, setRoles] = useState([]);
+  const [userCount, setUserCount] = useState(0);
   const [formData, setFormData] = useState({
     email: '',
     firstname: '',
@@ -18,23 +23,43 @@ const UserFormModal = ({ isOpen, onClose, initialValues = null, onSaved }) => {
   });
 
   const isEditMode = !!initialValues;
+  const isSuperAdmin = currentUser?.roles?.some(role => role.name === 'SUPER_ADMIN');
 
-  // Cargar roles disponibles
+  // Cargar roles disponibles y contar usuarios
   useEffect(() => {
-    async function loadRoles() {
+    async function loadInitialData() {
       try {
+        // Cargar roles disponibles
         const availableRoles = await AuthService.getAllRoles();
         setRoles(availableRoles || []);
+        
+        // Obtener conteo de usuarios
+        const users = await UserService.getAllUsers();
+        setUserCount(users?.length || 0);
+        
+        // Verificar si se excedió el límite
+        if (!isEditMode && users?.length >= USER_LIMIT) {
+          setWarning(`Has alcanzado el límite máximo de ${USER_LIMIT} usuarios. No puedes crear más usuarios.`);
+        } else {
+          setWarning('');
+        }
+        
+        // Verificar permisos de creación
+        if (!isEditMode && !isSuperAdmin) {
+          setError('Solo los administradores pueden crear nuevos usuarios.');
+        } else {
+          setError('');
+        }
       } catch (err) {
-        console.error('Error al cargar roles:', err);
-        setError('No se pudieron cargar los roles disponibles');
+        console.error('Error al cargar datos iniciales:', err);
+        setError('No se pudieron cargar los datos necesarios');
       }
     }
 
     if (isOpen) {
-      loadRoles();
+      loadInitialData();
     }
-  }, [isOpen]);
+  }, [isOpen, isEditMode, isSuperAdmin]);
 
   // Inicializar formulario con valores cuando estamos en modo edición
   useEffect(() => {
@@ -76,6 +101,16 @@ const UserFormModal = ({ isOpen, onClose, initialValues = null, onSaved }) => {
   };
 
   const validateForm = () => {
+    // Validación de permisos
+    if (!isEditMode && !isSuperAdmin) {
+      return 'No tienes permisos para crear nuevos usuarios';
+    }
+    
+    // Validación de límite de usuarios
+    if (!isEditMode && userCount >= USER_LIMIT) {
+      return `Se ha excedido el límite de ${USER_LIMIT} usuarios en el sistema`;
+    }
+    
     // Validaciones básicas
     if (!formData.email) return 'El email es requerido';
     if (!/^\S+@\S+\.\S+$/.test(formData.email)) return 'El email no es válido';
@@ -163,9 +198,27 @@ const UserFormModal = ({ isOpen, onClose, initialValues = null, onSaved }) => {
 
             <div className="flex-1 overflow-y-auto">
               <div className="p-6">
+                {/* Advertencia de límite de usuarios */}
+                {warning && (
+                  <div className="mb-4 p-3 bg-amber-50 border border-amber-100 rounded-md text-amber-700 flex items-start">
+                    <AlertCircle size={18} className="mr-2 mt-0.5 flex-shrink-0" />
+                    <span>{warning}</span>
+                  </div>
+                )}
+
+                {/* Error de validación o permisos */}
                 {error && (
-                  <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-md text-red-700">
-                    {error}
+                  <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-md text-red-700 flex items-start">
+                    <AlertCircle size={18} className="mr-2 mt-0.5 flex-shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                {/* Mensaje de información sobre permisos */}
+                {!isEditMode && !isSuperAdmin && (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-md text-blue-700 flex items-start">
+                    <AlertCircle size={18} className="mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Solo los usuarios con rol de Super Administrador pueden crear nuevos usuarios.</span>
                   </div>
                 )}
 
@@ -183,6 +236,7 @@ const UserFormModal = ({ isOpen, onClose, initialValues = null, onSaved }) => {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="email@example.com"
                       required
+                      disabled={!isEditMode && (!isSuperAdmin || userCount >= USER_LIMIT)}
                     />
                   </div>
 
@@ -200,6 +254,7 @@ const UserFormModal = ({ isOpen, onClose, initialValues = null, onSaved }) => {
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Nombre"
                         required
+                        disabled={!isEditMode && (!isSuperAdmin || userCount >= USER_LIMIT)}
                       />
                     </div>
                     <div>
@@ -214,6 +269,7 @@ const UserFormModal = ({ isOpen, onClose, initialValues = null, onSaved }) => {
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Apellido"
                         required
+                        disabled={!isEditMode && (!isSuperAdmin || userCount >= USER_LIMIT)}
                       />
                     </div>
                   </div>
@@ -231,6 +287,7 @@ const UserFormModal = ({ isOpen, onClose, initialValues = null, onSaved }) => {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder={isEditMode ? "Dejar en blanco para mantener la actual" : "Contraseña"}
                       required={!isEditMode}
+                      disabled={!isEditMode && (!isSuperAdmin || userCount >= USER_LIMIT)}
                     />
                     {isEditMode && (
                       <p className="text-sm text-gray-500 mt-1">
@@ -252,6 +309,7 @@ const UserFormModal = ({ isOpen, onClose, initialValues = null, onSaved }) => {
                             ${formData.roles.includes(role.id) 
                               ? 'bg-blue-100 text-blue-800 border-2 border-blue-500' 
                               : 'bg-gray-50 border border-gray-200 hover:border-blue-200'}
+                            ${!isEditMode && (!isSuperAdmin || userCount >= USER_LIMIT) ? 'opacity-50 pointer-events-none' : ''}
                           `}
                           onClick={() => toggleRole(role.id)}
                         >
@@ -290,8 +348,12 @@ const UserFormModal = ({ isOpen, onClose, initialValues = null, onSaved }) => {
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={isLoading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm text-sm font-medium hover:bg-blue-700 flex items-center"
+                  disabled={isLoading || (!isEditMode && (!isSuperAdmin || userCount >= USER_LIMIT))}
+                  className={`px-4 py-2 rounded-md shadow-sm text-sm font-medium flex items-center
+                    ${(!isEditMode && (!isSuperAdmin || userCount >= USER_LIMIT))
+                      ? 'bg-gray-400 text-gray-100 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
                 >
                   <Save size={16} className="mr-2" />
                   {isLoading ? 'Guardando...' : isEditMode ? 'Actualizar' : 'Crear'}

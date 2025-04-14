@@ -22,6 +22,7 @@ export default function Sidebar() {
     const [expanded, setExpanded] = useState(true);
     const location = useLocation();
     const [userRole, setUserRole] = useState('');
+    const [userSubRole, setUserSubRole] = useState('');
 
     // Estado para almacenar el estado de los menús desplegables
     // Inicializamos un objeto vacío que se llenará con IDs de menú
@@ -31,12 +32,24 @@ export default function Sidebar() {
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         setUserRole(user.rol || 'EMPRENDEDOR'); // Default a EMPRENDEDOR si no hay rol
+        setUserSubRole(user.subRol || ''); // Añadimos el subRol
     }, []);
 
     // Función para verificar si el usuario tiene acceso a un elemento del menú
     const hasAccess = (requiredRoles) => {
         if (!requiredRoles || requiredRoles.length === 0) return true;
-        return requiredRoles.includes(userRole);
+        
+        // Verificar rol principal
+        if (requiredRoles.includes(userRole)) return true;
+        
+        // Verificar acceso especial para Asistente de RRHH
+        if (userRole === 'ASISTENTE' && userSubRole === 'RRHH') {
+            if (requiredRoles.includes('RRHH') || requiredRoles.includes('ASISTENTE_RRHH')) {
+                return true;
+            }
+        }
+        
+        return false;
     };
 
     // Maneja el toggle del submenú
@@ -129,7 +142,7 @@ export default function Sidebar() {
             icon: IconBriefcase,
             label: 'RRHH',
             to: '/rrhh',
-            roles: ['SUPER_ADMIN', 'DISTRIBUIDOR', 'ASISTENTE_RRHH'], // Acceso para RRHH
+            roles: ['SUPER_ADMIN', 'DISTRIBUIDOR', 'RRHH', 'ASISTENTE_RRHH'], // Acceso para RRHH
         },
         {
             icon: IconSettings,
@@ -183,7 +196,10 @@ export default function Sidebar() {
                     <div className="mb-4 px-4 py-2 bg-blue-50 rounded-lg text-[#508ecb] text-sm font-medium">
                         <div className="flex items-center gap-2">
                             <IconUserCheck size={16} />
-                            <span>Rol: {userRole || 'Usuario'}</span>
+                            <span>
+                                Rol: {userRole || 'Usuario'}
+                                {userSubRole && ` - ${userSubRole}`}
+                            </span>
                         </div>
                     </div>
                 )}

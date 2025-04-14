@@ -48,7 +48,7 @@ export default function App() {
             </Route>
 
             {/* Estadísticas - Acceso para Super Admin y Distribuidor */}
-            <Route element={<ProtectedRoute requiredRoles={['SUPER ADMINISTRADOR', 'DISTRIBUIDOR']} />}>
+            <Route element={<ProtectedRoute requiredRoles={['SUPER_ADMIN', 'DISTRIBUIDOR']} />}>
               <Route element={<Layout />}>
                 <Route path="/statistics/performance" element={<PerformancePage />} />
                 <Route path="/statistics/funnel" element={<FunnelPage />} />
@@ -57,14 +57,14 @@ export default function App() {
             </Route>
 
             {/* RRHH - Acceso para Super Admin, Distribuidor y Asistente */}
-            <Route element={<ProtectedRoute requiredRoles={['SUPER ADMINISTRADOR', 'DISTRIBUIDOR', 'ASISTENTE_RRHH']} />}>
+            <Route element={<ProtectedRoute requiredRoles={['SUPER_ADMIN', 'DISTRIBUIDOR', 'ASISTENTE_RRHH']} />}>
               <Route element={<Layout />}>
                 <Route path="/rrhh" element={<RRHHPage />} />
               </Route>
             </Route>
 
             {/* Gestión de Usuarios - Solo Super Admin y Distribuidor */}
-            <Route element={<ProtectedRoute requiredRoles={['SUPER ADMINISTRADOR', 'DISTRIBUIDOR']} />}>
+            <Route element={<ProtectedRoute requiredRoles={['SUPER_ADMIN', 'DISTRIBUIDOR']} />}>
               <Route element={<Layout />}>
                 <Route path="/users" element={<UsersPage />} />
               </Route>

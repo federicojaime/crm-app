@@ -391,6 +391,29 @@ const PipelinePage = () => {
                     tags: ['cliente-satisfecho', 'b2c']
                 }
             ]
+        },
+        'venta-caida': {
+            id: 'venta-caida',
+            title: 'Venta Caida',
+            items: [
+                {
+                    id: 'task-70',
+                    name: 'Laura Gómez',
+                    phone: '11-5555-2345',
+                    products: [
+                        'Sistema de Cocina Completo',
+                        'Sistema de Filtración de Agua',
+                        'Vajilla 12 piezas'
+                    ],
+                    value: '$580,000',
+                    priority: 'ALTA',
+                    lastContact: '2024-10-25',
+                    notes: 'Venta cerrada, entrega programada',
+                    paymentPlan: '18 cuotas',
+                    deliveryDate: '2024-11-05',
+                    tags: ['cliente-satisfecho', 'b2c']
+                }
+            ]
         }
     });
 

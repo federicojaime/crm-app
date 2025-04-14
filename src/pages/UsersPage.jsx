@@ -1,14 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   IconEdit, 
   IconLock, 
   IconTrash, 
   IconSearch,
-  IconPlus
+  IconPlus,
+  IconAlertCircle,
+  IconUsers
 } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 import AddUserModal from '../components/modals/AddUserModal';
+import AuthService from '../services/AuthService';
+
+// Constante para el límite máximo de usuarios
+const USER_LIMIT = 5;
 
 const UsersPage = () => {
   const navigate = useNavigate();
@@ -16,6 +22,7 @@ const UsersPage = () => {
   const [filterRole, setFilterRole] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   
   // Datos de ejemplo
   const [users, setUsers] = useState([
@@ -65,7 +72,49 @@ const UsersPage = () => {
     },
   ]);
 
+  // Cargar usuario actual
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      try {
+        // En un entorno real, llamarías a tu servicio de autenticación
+        // const user = await AuthService.getCurrentUser();
+        
+        // Para este ejemplo, simulamos un usuario actual
+        // Cambia esto según tu lógica de autenticación real
+        const user = {
+          id: 1,
+          nombre: 'Juan',
+          apellido: 'Pérez',
+          rol: 'SUPER ADMINISTRADOR'
+        };
+        
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Error al obtener el usuario actual:', error);
+      }
+    };
+    
+    getCurrentUser();
+  }, []);
+
+  // Verificar si el usuario actual es Super Admin
+  const isSuperAdmin = currentUser?.rol === 'SUPER ADMINISTRADOR';
+  
+  // Verificar si se alcanzó el límite de usuarios
+  const hasReachedUserLimit = users.length >= USER_LIMIT;
+
   const handleAddUser = (userData) => {
+    // Verificar si se puede agregar un nuevo usuario
+    if (!isSuperAdmin) {
+      alert('Solo los Super Administradores pueden crear nuevos usuarios.');
+      return;
+    }
+    
+    if (users.length >= USER_LIMIT) {
+      alert(`Se ha alcanzado el límite máximo de ${USER_LIMIT} usuarios en el sistema.`);
+      return;
+    }
+    
     const initials = `${userData.nombre[0]}${userData.apellido[0]}`;
     const newUser = {
       id: users.length + 1,
@@ -129,6 +178,21 @@ const UsersPage = () => {
     return status === 'ACTIVO' ? 'bg-green-500' : 'bg-gray-500';
   };
 
+  const openAddModal = () => {
+    if (!isSuperAdmin) {
+      alert('Solo los Super Administradores pueden crear nuevos usuarios.');
+      return;
+    }
+    
+    if (hasReachedUserLimit) {
+      alert(`Se ha alcanzado el límite máximo de ${USER_LIMIT} usuarios en el sistema.`);
+      return;
+    }
+    
+    setEditingUser(null);
+    setIsAddModalOpen(true);
+  };
+
   return (
     <div className="p-6">
       <motion.div
@@ -139,15 +203,40 @@ const UsersPage = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Gestión de Usuarios</h1>
           <button
-            onClick={() => {
-              setEditingUser(null);
-              setIsAddModalOpen(true);
-            }}
-            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            onClick={openAddModal}
+            className={`flex items-center gap-2 px-4 py-2 rounded 
+              ${(!isSuperAdmin || hasReachedUserLimit) 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-blue-500 hover:bg-blue-600'} text-white`}
+            disabled={!isSuperAdmin || hasReachedUserLimit}
           >
             <IconPlus size={18} />
             Agregar Usuario
           </button>
+        </div>
+
+        {/* Mensaje informativo sobre los permisos */}
+        {!isSuperAdmin && (
+          <div className="mb-4 p-4 bg-blue-50 border border-blue-100 rounded-lg text-blue-700 flex items-start">
+            <IconAlertCircle size={20} className="mr-2 mt-0.5 flex-shrink-0" />
+            <span>Solo los usuarios con rol de Super Administrador pueden crear nuevos usuarios en el sistema.</span>
+          </div>
+        )}
+
+        {/* Mensaje sobre el límite de usuarios */}
+        {hasReachedUserLimit && (
+          <div className="mb-4 p-4 bg-amber-50 border border-amber-100 rounded-lg text-amber-700 flex items-start">
+            <IconAlertCircle size={20} className="mr-2 mt-0.5 flex-shrink-0" />
+            <span>Se ha alcanzado el límite máximo de {USER_LIMIT} usuarios en el sistema. No se pueden crear más usuarios.</span>
+          </div>
+        )}
+
+        {/* Contador de usuarios */}
+        <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center">
+          <IconUsers size={20} className="mr-2 text-gray-600" />
+          <span className="text-gray-700 font-medium">
+            Usuarios actuales: <span className="font-bold">{users.length}</span> / <span className="font-bold">{USER_LIMIT}</span>
+          </span>
         </div>
 
         <div className="mb-4 flex justify-between">
@@ -165,7 +254,7 @@ const UsersPage = () => {
             onClick={() => setFilterRole(filterRole ? '' : 'DISTRIBUIDOR')}
             className="ml-4 px-4 py-2 bg-white border border-gray-200 rounded text-gray-700 hover:bg-gray-50"
           >
-            Filtrar por Rol
+            {filterRole ? 'Mostrar todos' : 'Filtrar por Rol'}
           </button>
         </div>
 
@@ -243,6 +332,9 @@ const UsersPage = () => {
         }}
         onSave={editingUser ? handleUpdateUser : handleAddUser}
         initialValues={editingUser}
+        currentUser={currentUser}
+        userCount={users.length}
+        userLimit={USER_LIMIT}
       />
     </div>
   );

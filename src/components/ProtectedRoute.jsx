@@ -21,9 +21,14 @@ export default function ProtectedRoute({ requiredRoles = [] }) {
             // Verificar rol principal
             if (role === userRole) return true;
             
-            // Verificar sub-roles para 'ASISTENTE'
-            if (userRole === 'ASISTENTE') {
-                return role === `ASISTENTE_${userSubRole}`;
+            // Caso especial: Asistente de RRHH - puede acceder a rutas que requieren RRHH
+            if (userRole === 'ASISTENTE' && userSubRole === 'RRHH' && role === 'RRHH') {
+                return true;
+            }
+            
+            // Para compatibilidad con el sidebar que usa ASISTENTE_RRHH
+            if (userRole === 'ASISTENTE' && userSubRole === 'RRHH' && role === 'ASISTENTE_RRHH') {
+                return true;
             }
             
             return false;
