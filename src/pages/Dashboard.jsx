@@ -20,6 +20,7 @@ import {
   Legend,
 } from 'recharts';
 import { useState, useEffect } from 'react';
+import ManualChat from '../components/ManualChat';
 
 // Importamos el componente de estadísticas
 import StatisticsPanel from '../components/dashboard/StatisticsPanel';
@@ -94,7 +95,7 @@ export default function Dashboard() {
     // Si se selecciona "Todo", mostrar todos los meses del año
     if (mesSeleccionado === 'Todo') {
       setDatosAMostrar(allSalesData[añoSeleccionado] || []);
-      
+
       // Calcular totales para las estadísticas
       const datos = allSalesData[añoSeleccionado] || [];
       const totalIngresos = datos.reduce((sum, item) => sum + item.ingresoTotal, 0);
@@ -102,7 +103,7 @@ export default function Dashboard() {
       const totalNeto = datos.reduce((sum, item) => sum + item.ingresoNeto, 0);
       const totalReserva = datos.reduce((sum, item) => sum + item.reserva, 0);
       const totalOrdenes = datos.reduce((sum, item) => sum + item.ordenesCargadas, 0);
-      
+
       setEstadisticas([
         {
           title: 'Ingresos Totales',
@@ -144,11 +145,11 @@ export default function Dashboard() {
       // Filtrar solo el mes seleccionado
       const datosFiltrados = (allSalesData[añoSeleccionado] || []).filter(item => item.name === mesSeleccionado);
       setDatosAMostrar(datosFiltrados);
-      
+
       // Actualizar estadísticas con los datos del mes
       if (datosFiltrados.length > 0) {
         const datoMes = datosFiltrados[0];
-        
+
         setEstadisticas([
           {
             title: 'Ingresos Totales',
@@ -208,6 +209,8 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      <ManualChat />
+
       {/* Filtros */}
       <Group position="right" spacing="md">
         <Select
@@ -264,12 +267,12 @@ export default function Dashboard() {
         <ResponsiveContainer width="100%" height={400}>
           <LineChart data={datosAMostrar}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-            <XAxis 
-              dataKey="name" 
+            <XAxis
+              dataKey="name"
               stroke="#6B7280"
               tick={{ fill: '#6B7280' }}
             />
-            <YAxis 
+            <YAxis
               stroke="#6B7280"
               tick={{ fill: '#6B7280' }}
             />
@@ -313,12 +316,12 @@ export default function Dashboard() {
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={datosAMostrar}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-            <XAxis 
-              dataKey="name" 
+            <XAxis
+              dataKey="name"
               stroke="#6B7280"
               tick={{ fill: '#6B7280' }}
             />
-            <YAxis 
+            <YAxis
               stroke="#6B7280"
               tick={{ fill: '#6B7280' }}
             />
