@@ -14,6 +14,7 @@ import PipelinePage from './pages/PipelinePage';
 import UsersPage from './pages/UsersPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import RRHHPage from './pages/RRHHPage';
+//import HRPipelinePage from './pages/HRPipelinePage';
 
 // Páginas de estadísticas
 import PerformancePage from './pages/statistics/PerformancePage';
@@ -56,10 +57,11 @@ export default function App() {
               </Route>
             </Route>
 
-            {/* RRHH - Acceso para Super Admin, Distribuidor y Asistente */}
+            {/* RRHH - Acceso para Super Admin, Distribuidor y Asistente  <Route path="/rrhh/pipeline" element={<HRPipelinePage />} />*/}
             <Route element={<ProtectedRoute requiredRoles={['SUPER_ADMIN', 'DISTRIBUIDOR', 'ASISTENTE_RRHH']} />}>
               <Route element={<Layout />}>
                 <Route path="/rrhh" element={<RRHHPage />} />
+               
               </Route>
             </Route>
 

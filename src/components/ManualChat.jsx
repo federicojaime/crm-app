@@ -1,128 +1,228 @@
 // src/components/FloatingManualChat.jsx
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import "../styles/ChatStyles.css";
 
-const API = "http://localhost:4000";
+// API endpoint - Reemplazar con tu configuración
+const API = "https://agente-production-9bec.up.railway.app";
 
 export default function FloatingManualChat() {
+    // Estados principales
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
     const [history, setHistory] = useState([]);
     const [msg, setMsg] = useState("");
     const [loading, setLoading] = useState(false);
     const [manualLoaded, setManualLoaded] = useState(false);
-    const [lastMessageIndex, setLastMessageIndex] = useState(0);
-
-    // Referencias para el contenedor de chat y elementos de mensajes
+    const [isFocused, setIsFocused] = useState(false);
+    const [newMessageAlert, setNewMessageAlert] = useState(false);
+    const [userHasScrolled, setUserHasScrolled] = useState(false);
+    
+    // Referencias
     const chatContainerRef = useRef(null);
-    const lastMessageRef = useRef(null);
     const inputRef = useRef(null);
-    const messageRefs = useRef({});
-
-    // Comprobar al inicio si el manual ya está cargado
+    const latestMessageRef = useRef(null);
+    const prevHistoryLengthRef = useRef(0);
+    
+    // Comprobación inicial del estado de los manuales
     useEffect(() => {
         checkManualStatus();
     }, []);
-
-    // Scroll inteligente cuando se recibe una nueva respuesta
-    useEffect(() => {
-        if (history.length > 0 && lastMessageIndex < history.length - 1) {
-            // Si hay un nuevo mensaje asistente después de un mensaje usuario
-            const newMessageIndex = history.length - 1;
-            const messageElement = messageRefs.current[newMessageIndex];
-
-            if (messageElement && history[newMessageIndex].role === 'assistant') {
-                // Scroll al inicio del mensaje del asistente
-                messageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-
-            setLastMessageIndex(history.length - 1);
-        }
-    }, [history, lastMessageIndex]);
-
-    // Enfoque en el input cuando se abre el chat
+    
+    // Gestión del enfoque en el input cuando se abre el chat
     useEffect(() => {
         if (isOpen && !isMinimized && inputRef.current) {
-            inputRef.current.focus();
+            setTimeout(() => {
+                inputRef.current.focus();
+            }, 300);
         }
     }, [isOpen, isMinimized]);
-
-    // Verificar estado del manual usando el endpoint /status
+    
+    // ===== SISTEMAS DE SCROLL AVANZADOS =====
+    
+    // 1. Control de detección cuando el usuario ha scrolleado manualmente
+    const handleScroll = useCallback(() => {
+        if (!chatContainerRef.current) return;
+        
+        const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+        const isAtBottom = scrollHeight - scrollTop - clientHeight < 30;
+        
+        // Si está cerca del final, consideramos que no está en modo scroll manual
+        if (isAtBottom) {
+            setUserHasScrolled(false);
+            if (newMessageAlert) setNewMessageAlert(false);
+        } else {
+            setUserHasScrolled(true);
+        }
+    }, [newMessageAlert]);
+    
+    // 2. Instalación del detector de scroll
+    useEffect(() => {
+        const chatContainer = chatContainerRef.current;
+        if (chatContainer) {
+            chatContainer.addEventListener('scroll', handleScroll);
+            return () => chatContainer.removeEventListener('scroll', handleScroll);
+        }
+    }, [handleScroll]);
+    
+    // 3. Sistema principal de scroll inteligente
+    useEffect(() => {
+        if (history.length === 0) return;
+        
+        const hasNewMessage = history.length > prevHistoryLengthRef.current;
+        prevHistoryLengthRef.current = history.length;
+        
+        if (!hasNewMessage) return;
+        
+        // Determinar si debemos mostrar alerta o hacer scroll
+        if (userHasScrolled) {
+            // Si el usuario está en mitad de lectura, mostrar notificación en lugar de scroll forzado
+            setNewMessageAlert(true);
+        } else {
+            // Si es una respuesta del asistente (último mensaje), scroll al inicio de la respuesta
+            const lastMessage = history[history.length - 1];
+            if (lastMessage && lastMessage.role === 'assistant' && latestMessageRef.current) {
+                setTimeout(() => {
+                    latestMessageRef.current.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                }, 100);
+            }
+            // Si es un mensaje del usuario, scroll al final
+            else if (lastMessage && lastMessage.role === 'user') {
+                setTimeout(() => {
+                    chatContainerRef.current?.scrollTo({
+                        top: chatContainerRef.current.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }, 100);
+            }
+        }
+    }, [history, userHasScrolled]);
+    
+    // Función para scroll hacia el último mensaje (usado por el botón de alerta)
+    const scrollToLatestMessage = () => {
+        if (latestMessageRef.current) {
+            latestMessageRef.current.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+            setNewMessageAlert(false);
+        }
+    };
+    
+    // Verificar estado del manual
     const checkManualStatus = async () => {
         try {
-            // Usamos el endpoint /status para verificar si el manual está cargado
             const { data } = await axios.get(`${API}/status`);
-
-            // Verificamos el estado del manual directamente desde la respuesta
-            if (data.ok && data.manualCargado) {
+            
+            if (data.ok && data.manualesCargados) {
                 setManualLoaded(true);
-                console.log("Manual detectado como cargado");
-
-                // Añadimos un mensaje inicial del bot si no hay historia
+                
+                // Mensaje inicial si no hay historia
                 if (history.length === 0) {
                     setHistory([{
+                        id: 'initial-message',
                         role: "assistant",
-                        content: "¡Hola! Soy tu asistente virtual. El manual ya está cargado y listo para responder tus consultas. ¿En qué puedo ayudarte?"
+                        content: "¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte con respecto al manual?"
                     }]);
                 }
             } else {
-                console.log("Manual no detectado o no cargado");
                 setManualLoaded(false);
             }
         } catch (error) {
-            console.error("Error al verificar estado del manual:", error);
+            console.error("Error al verificar estado de los manuales:", error);
             setManualLoaded(false);
         }
     };
-
+    
+    // Manejo de auto-altura del textarea
+    const handleTextareaChange = (e) => {
+        const textarea = e.target;
+        setMsg(textarea.value);
+        
+        // Auto-height
+        textarea.style.height = 'auto';
+        const newHeight = Math.min(textarea.scrollHeight, 120);
+        textarea.style.height = `${newHeight}px`;
+    };
+    
+    // Enviar mensaje con gestión mejorada de errores
     const sendMessage = async () => {
         if (!msg.trim()) return;
-
-        // Añadimos el mensaje del usuario a la historia
-        const newHistory = [...history, { role: "user", content: msg }];
-        setHistory(newHistory);
+        
+        // ID único para el mensaje
+        const userMsgId = `user-${Date.now()}`;
+        const userMessage = { 
+            id: userMsgId, 
+            role: "user", 
+            content: msg 
+        };
+        
+        // Actualizar historia con mensaje del usuario
+        setHistory(prev => [...prev, userMessage]);
         setMsg("");
         setLoading(true);
-
+        
+        // Resetear altura del textarea
+        if (inputRef.current) {
+            inputRef.current.style.height = 'auto';
+        }
+        
         try {
+            // Enviar solicitud al servidor
             const { data } = await axios.post(`${API}/chat`, {
                 message: msg,
-                history: newHistory.slice(-4) // Enviamos solo los últimos mensajes para limitar el contexto
+                history: [...history, userMessage].slice(-4).map(item => ({
+                    role: item.role,
+                    content: item.content
+                }))
             });
-
-            // Actualizamos el estado del manual si viene en la respuesta
-            if (data.manualCargado !== undefined) {
-                setManualLoaded(data.manualCargado);
+            
+            // Actualizar estado del manual si la API lo devuelve
+            if (data.manualesCargados !== undefined) {
+                setManualLoaded(data.manualesCargados);
             }
-
-            // Añadimos la respuesta del asistente
-            setHistory([...newHistory, { role: "assistant", content: data.answer }]);
+            
+            // Añadir respuesta del asistente
+            const assistantMessage = { 
+                id: `assistant-${Date.now()}`, 
+                role: "assistant", 
+                content: data.answer 
+            };
+            
+            setHistory(prev => [...prev, assistantMessage]);
+            
         } catch (error) {
             console.error("Error al enviar mensaje:", error);
-            setHistory([
-                ...newHistory,
-                {
-                    role: "assistant",
-                    content: "Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, inténtalo de nuevo."
-                }
-            ]);
-
-            // Si hay un error, intentamos verificar el estado del manual
+            
+            // Añadir mensaje de error amigable
+            const errorMessage = { 
+                id: `error-${Date.now()}`, 
+                role: "assistant", 
+                content: "Lo siento, ha ocurrido un error al procesar tu consulta. Por favor, inténtalo de nuevo."
+            };
+            
+            setHistory(prev => [...prev, errorMessage]);
+            
+            // Verificar estado del manual en caso de error
             checkManualStatus();
         } finally {
             setLoading(false);
         }
     };
-
+    
+    // Manejar envío con Enter (permitiendo nueva línea con Shift+Enter)
     const handleKeyDown = (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
         }
     };
-
+    
+    // Control de interfaz
     const toggleChat = () => {
         if (isMinimized) {
             setIsMinimized(false);
@@ -130,56 +230,61 @@ export default function FloatingManualChat() {
             setIsOpen(true);
         }
     };
-
+    
     const minimizeChat = () => {
         setIsMinimized(true);
     };
-
+    
     const closeChat = () => {
         setIsOpen(false);
         setIsMinimized(false);
     };
-
-    // Función para renderizar el contenido de mensajes con soporte Markdown
-    const renderMessageContent = (content) => {
-        return (
-            <div className="markdown-content">
-                <ReactMarkdown>{content}</ReactMarkdown>
-            </div>
-        );
-    };
-
-    // Función para asignar una referencia a un mensaje
-    const setMessageRef = (index, el) => {
-        messageRefs.current[index] = el;
+    
+    // Renderizar contenido Markdown con seguridad
+    const renderMessageContent = (content) => (
+        <div className="markdown-content">
+            <ReactMarkdown>{content}</ReactMarkdown>
+        </div>
+    );
+    
+    // Referencia para el último mensaje para scroll correcto
+    const setMessageRef = (isLatest) => {
+        return isLatest ? latestMessageRef : null;
     };
 
     return (
         <>
-            {/* Botón flotante para abrir el chat */}
+            {/* Botón flotante con badge de notificación cuando minimizado */}
             {(!isOpen || isMinimized) && (
                 <button
                     onClick={toggleChat}
-                    className="chat-float-button"
+                    className={`chat-float-button ${!isOpen ? "pulse-animation" : ""}`}
                     aria-label="Abrir chat"
                 >
-                    <span className="chat-icon">💬</span>
-                    {isMinimized && <span className="chat-label">Asistente</span>}
+                    <div className="float-button-content">
+                        <span className="chat-icon">💬</span>
+                        {isMinimized && <span className="chat-label">Asistente</span>}
+                    </div>
                 </button>
             )}
 
             {/* Contenedor principal del chat */}
             {isOpen && (
-                <div className={`chat-container ${isMinimized ? "minimized" : ""}`}>
+                <div className={`chat-container ${isMinimized ? "minimized" : "active"}`}>
                     {/* Cabecera */}
                     <div className="chat-header">
+                        <div className="chat-avatar">
+                            <img src="/path/to/bot-avatar.png" alt="Bot" onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M12 16v-4'%3E%3C/path%3E%3Cpath d='M12 8h.01'%3E%3C/path%3E%3C/svg%3E";
+                            }} />
+                        </div>
                         <div className="chat-title">
-                            <span className="chat-icon">🤖</span>
                             <h3>Asistente del Manual</h3>
                         </div>
                         <div className="chat-controls">
                             <button onClick={minimizeChat} className="control-button minimize" aria-label="Minimizar">
-                                <span>_</span>
+                                <span>—</span>
                             </button>
                             <button onClick={closeChat} className="control-button close" aria-label="Cerrar">
                                 <span>×</span>
@@ -190,65 +295,109 @@ export default function FloatingManualChat() {
                     {/* Indicador de estado del manual */}
                     <div className="manual-status">
                         <div className={`status-indicator ${manualLoaded ? "active" : "inactive"}`}></div>
-                        <span>{manualLoaded
-                            ? "Online"
-                            : "Offline"}
+                        <span className="status-text">
+                            {manualLoaded ? "Manuales disponibles" : "Manuales no disponibles"}
                         </span>
                     </div>
 
                     {/* Área de mensajes */}
-                    <div className="chat-messages" ref={chatContainerRef}>
-                        {history.length === 0 && (
+                    <div 
+                        className="chat-messages" 
+                        ref={chatContainerRef}
+                    >
+                        {history.length === 0 ? (
                             <div className="welcome-message">
-                                <p>Bienvenido al asistente del manual.</p>
-                                <p>Hazme cualquier pregunta sobre el contenido del manual.</p>
+                                <div className="welcome-icon">📚</div>
+                                <h4>Bienvenido al asistente del manual</h4>
+                                <p>Hazme cualquier pregunta sobre el contenido del manual y te ayudaré a encontrar la información que necesitas.</p>
                             </div>
+                        ) : (
+                            history.map((msg, index) => {
+                                const isLatestAssistantMessage = 
+                                    msg.role === "assistant" && 
+                                    index === history.length - 1 && 
+                                    history[history.length - 1].role === "assistant";
+                                
+                                return (
+                                    <div
+                                        key={msg.id}
+                                        ref={isLatestAssistantMessage ? latestMessageRef : null}
+                                        className={`message ${msg.role === "user" ? "user-message" : "assistant-message"} ${isLatestAssistantMessage ? "latest-message" : ""}`}
+                                    >
+                                        {msg.role === "assistant" && (
+                                            <div className="message-avatar">
+                                                <div className="avatar-circle">🤖</div>
+                                            </div>
+                                        )}
+                                        <div className="message-bubble">
+                                            <div className="message-content">
+                                                {msg.role === "assistant"
+                                                    ? renderMessageContent(msg.content)
+                                                    : msg.content}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })
                         )}
 
-                        {history.map((msg, idx) => (
-                            <div
-                                key={idx}
-                                className={`message ${msg.role === "user" ? "user-message" : "assistant-message"}`}
-                                ref={(el) => setMessageRef(idx, el)}
-                            >
-                                <div className="message-content">
-                                    {msg.role === "assistant"
-                                        ? renderMessageContent(msg.content)
-                                        : msg.content}
-                                </div>
-                            </div>
-                        ))}
-
+                        {/* Indicador de escritura con animación moderna */}
                         {loading && (
-                            <div className="message assistant-message">
-                                <div className="message-content typing">
-                                    <span className="dot"></span>
-                                    <span className="dot"></span>
-                                    <span className="dot"></span>
+                            <div className="message assistant-message typing-indicator-container">
+                                <div className="message-avatar">
+                                    <div className="avatar-circle">🤖</div>
+                                </div>
+                                <div className="message-bubble typing-message">
+                                    <div className="typing-indicator">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
                                 </div>
                             </div>
+                        )}
+                        
+                        {/* Botón de alerta de nuevo mensaje */}
+                        {newMessageAlert && (
+                            <button 
+                                className="new-message-alert"
+                                onClick={scrollToLatestMessage}
+                            >
+                                <span className="alert-icon">↓</span>
+                                <span>Nueva respuesta</span>
+                            </button>
                         )}
                     </div>
 
-                    {/* Área de entrada */}
+                    {/* Área de entrada con enfoque en UX */}
                     <div className="chat-input-container">
-                        <textarea
-                            ref={inputRef}
-                            value={msg}
-                            onChange={(e) => setMsg(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder="Escribe tu pregunta sobre el manual..."
-                            rows={1}
-                            className="chat-input"
-                        />
-                        <button
-                            onClick={sendMessage}
-                            className="send-button"
-                            disabled={loading || !msg.trim()}
-                            aria-label="Enviar mensaje"
-                        >
-                            <span>📤</span>
-                        </button>
+                        <div className={`input-wrapper ${isFocused ? 'focused' : ''}`}>
+                            <textarea
+                                ref={inputRef}
+                                value={msg}
+                                onChange={handleTextareaChange}
+                                onKeyDown={handleKeyDown}
+                                onFocus={() => setIsFocused(true)}
+                                onBlur={() => setIsFocused(false)}
+                                placeholder="Escribe tu pregunta sobre el manual..."
+                                rows={1}
+                                className="chat-input"
+                            />
+                            <button
+                                onClick={sendMessage}
+                                className={`send-button ${!msg.trim() ? "disabled" : "active"}`}
+                                disabled={loading || !msg.trim()}
+                                aria-label="Enviar mensaje"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                                    <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
+                                </svg>
+                            </button>
+                        </div>
+                        {/* Notificación de atajo con Shift+Enter */}
+                        <div className="input-hint">
+                            <span>Presiona <kbd>Enter</kbd> para enviar o <kbd>Shift</kbd>+<kbd>Enter</kbd> para nueva línea</span>
+                        </div>
                     </div>
                 </div>
             )}
