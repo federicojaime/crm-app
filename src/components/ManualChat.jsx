@@ -4,7 +4,7 @@ import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import "../styles/ChatStyles.css";
 
-// API endpoint - Reemplazar con tu configuración
+// API endpoint
 const API = "https://agente-production-9bec.up.railway.app";
 
 export default function FloatingManualChat() {
@@ -116,7 +116,13 @@ export default function FloatingManualChat() {
     // Verificar estado del manual
     const checkManualStatus = async () => {
         try {
-            const { data } = await axios.get(`${API}/status`);
+            const response = await fetch(`${API}/status`);
+            
+            if (!response.ok) {
+                throw new Error(`Error en la solicitud: ${response.status}`);
+            }
+            
+            const data = await response.json();
             
             if (data.ok && data.manualesCargados) {
                 setManualLoaded(true);
@@ -172,14 +178,26 @@ export default function FloatingManualChat() {
         }
         
         try {
-            // Enviar solicitud al servidor
-            const { data } = await axios.post(`${API}/chat`, {
-                message: msg,
-                history: [...history, userMessage].slice(-4).map(item => ({
-                    role: item.role,
-                    content: item.content
-                }))
+            // Usar POST directamente con fetch nativo
+            const response = await fetch(`${API}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: msg,
+                    history: [...history, userMessage].slice(-4).map(item => ({
+                        role: item.role,
+                        content: item.content
+                    }))
+                })
             });
+            
+            if (!response.ok) {
+                throw new Error(`Error en la solicitud: ${response.status}`);
+            }
+            
+            const data = await response.json();
             
             // Actualizar estado del manual si la API lo devuelve
             if (data.manualesCargados !== undefined) {
@@ -190,7 +208,7 @@ export default function FloatingManualChat() {
             const assistantMessage = { 
                 id: `assistant-${Date.now()}`, 
                 role: "assistant", 
-                content: data.answer 
+                content: data.answer
             };
             
             setHistory(prev => [...prev, assistantMessage]);
@@ -246,11 +264,6 @@ export default function FloatingManualChat() {
             <ReactMarkdown>{content}</ReactMarkdown>
         </div>
     );
-    
-    // Referencia para el último mensaje para scroll correcto
-    const setMessageRef = (isLatest) => {
-        return isLatest ? latestMessageRef : null;
-    };
 
     return (
         <>
